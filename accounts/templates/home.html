@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Management System</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>School Authentication Portal</h1>
+        <p class="subtitle">Please select your role to proceed</p>
+
+        <div class="cards-grid">
+            <!-- Principal Card -->
+            <div class="card">
+                <div class="icon-wrapper" style="color: #ec4899;">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <h2>Principal Portal</h2>
+                <p>Login to manage teachers, track attendance records, and create class timetables.</p>
+                <div class="action-buttons">
+                    <a href="{% url 'principal_login_view' %}" class="btn btn-primary">
+                        Principal Login <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+                    </a>
+                    <a href="{% url 'principal_register' %}" class="btn btn-secondary">
+                        <i class="fas fa-school"></i> Register New School
+                    </a>
+                </div>
+            </div>
+
+            <!-- Teacher Card -->
+            <div class="card">
+                <div class="icon-wrapper" style="color: #6366f1;">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h2>Teacher Portal</h2>
+                <p>Secure login for faculty. Use Face ID or credentials to access your dashboard.</p>
+                <div class="action-buttons">
+                    <a href="{% url 'login_user' %}" class="btn btn-primary">
+                        Face Login <i class="fas fa-camera" style="margin-left: 8px;"></i>
+                    </a>
+                    <a href="{% url 'teacher_login_password' %}" class="btn btn-secondary">
+                        Login via Password
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

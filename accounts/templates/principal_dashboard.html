@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Principal Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 2rem;
+        }
+
+        .table-container {
+            width: 100%;
+            max-width: 1200px;
+            background: var(--card-bg);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+
+        th {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-header">
+        <h1>{{ user.principal.school_name }} Dashboard</h1>
+        <div style="display: flex; gap: 1rem;">
+            <a href="/add-teacher/" class="btn btn-primary"><i class="fas fa-plus"></i> Add Teacher</a>
+            <a href="/admin/accounts/timetable/" class="btn btn-secondary">Manage Timetables</a>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <h2 style="margin-bottom: 1.5rem;">Registered Teachers</h2>
+        {% if teachers %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for teacher in teachers %}
+                <tr>
+                    <td>{{ teacher.name }}</td>
+                    <td>{{ teacher.user.username }}</td>
+                    <td>
+                        <a href="/admin/accounts/teacher/{{ teacher.id }}/change/"
+                            style="color: var(--primary-color);">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: #94a3b8; padding: 2rem;">No teachers registered yet.</p>
+        {% endif %}
+    </div>
+</body>
+
+</html>

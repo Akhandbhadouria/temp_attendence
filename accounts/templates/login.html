@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -102,12 +103,13 @@
         }
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <h2>Login with Face Recognition</h2>
         <form id="login-form">
             <input type="text" id="username" name="username" placeholder="Username" required>
-            
+
             <div id="camera-container">
                 <video id="video" width="100%" height="auto" autoplay></video>
                 <button type="button" id="capture-button">Capture Face</button>
@@ -172,8 +174,11 @@
                 });
 
                 const data = await response.json();
-                if (data.success) {
-                    messageDiv.innerText = data.message || 'Login successful!';
+                if (data.status === 'success') {
+                    messageDiv.innerText = data.message;
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    }
                 } else {
                     messageDiv.innerText = data.message || 'Login failed.';
                 }
@@ -184,4 +189,5 @@
         };
     </script>
 </body>
+
 </html>

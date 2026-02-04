@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Teacher</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            justify-content: flex-start;
+            padding-top: 50px;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+
+        #video,
+        #canvas {
+            width: 100%;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-card">
+        <h2 style="margin-bottom: 1.5rem;">Add New Teacher</h2>
+        <form id="addTeacherForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="name" required>
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label>Capture Face</label>
+                <video id="video" autoplay></video>
+                <canvas id="canvas" class="hidden"></canvas>
+                <button type="button" id="captureBtn" class="btn btn-secondary"
+                    style="margin-top: 5px;">Capture</button>
+                <p id="captureStatus" style="color: #4ade80; display: none; margin-top: 5px;">Face Captured!</p>
+            </div>
+
+            <input type="hidden" name="face_image" id="faceImageInput">
+            <button type="submit" class="btn btn-primary">Register Teacher</button>
+        </form>
+        <p style="margin-top: 1rem;"><a href="/principal/dashboard/" style="color: #94a3b8;">&larr; Back to
+                Dashboard</a></p>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const faceImageInput = document.getElementById('faceImageInput');
+        const captureStatus = document.getElementById('captureStatus');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => video.srcObject = stream)
+            .catch(err => alert("Camera access denied"));
+
+        captureBtn.onclick = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            faceImageInput.value = canvas.toDataURL('image/jpeg');
+            captureStatus.style.display = 'block';
+            video.pause();
+        };
+
+        document.getElementById('addTeacherForm').onsubmit = async (e) => {
+            e.preventDefault();
+            if (!faceImageInput.value) return alert("Please capture face first!");
+
+            const formData = new FormData(e.target);
+            const response = await fetch('', { method: 'POST', body: formData });
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                alert(data.message);
+                window.location.href = "/principal/dashboard/";
+            } else {
+                alert(data.message);
+            }
+        };
+    </script>
+</body>
+
+</html>
