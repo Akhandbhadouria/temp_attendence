@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import datetime
 
 
 
@@ -70,3 +71,15 @@ class TeacherAttendance(models.Model):
 
     def __str__(self):
         return f"{self.teacher.name} - {self.date}"
+
+class ClassSession(models.Model):
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='class_sessions')
+    timetable = models.ForeignKey(Timetable, on_delete=models.SET_NULL, null=True, blank=True)
+    start_time = models.DateTimeField(auto_now_add=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    total_active_duration = models.DurationField(null=True, blank=True, default=datetime.timedelta(0))
+    status = models.CharField(max_length=20, default='Ongoing') # Ongoing, Completed
+    monitoring_resumption_count = models.IntegerField(default=1) # Track sessions/logins
+
+    def __str__(self):
+        return f"{self.teacher.name} - {self.timetable.subject if self.timetable else 'Extra Class'} - {self.start_time.date()}"

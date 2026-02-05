@@ -1,0 +1,6 @@
+#!/Users/lambardaar/Downloads/live_attendence/live-attendance-mini/venv/bin/python3.10
+import sys
+from face_recognition.face_recognition_cli import main
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(main())

@@ -1,0 +1,5 @@
+Teacher Name,Department,Attendance Consistency (%),Completion Rate (%),Late Entries,Early Exits,Interruptions,Risk Score,Status
+Akhand Pratap singh,Physics,2.5%,500.0%,0,1,3,5,DEFAULTER
+mulan singh,Chemistry,3.8%,100.0%,0,1,0,3,DEFAULTER
+anuj singh,Chemistry,0%,0.0%,0,0,0,5,DEFAULTER
+jay,English,1.7%,100.0%,0,1,0,3,DEFAULTER

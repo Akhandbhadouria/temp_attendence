@@ -8,7 +8,9 @@
     <title>{{ teacher.name }} - Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-color: #f3f4f6;
@@ -34,73 +36,7 @@
             color: var(--text-dark);
         }
 
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--white);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            height: 100vh;
-            border-right: 1px solid var(--border-color);
-            z-index: 100;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 1rem 0.75rem;
-            margin-bottom: 2rem;
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: var(--text-dark);
-        }
-
-        .brand i {
-            font-size: 1.5rem;
-            color: var(--primary-blue);
-        }
-
-        .menu-label {
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-light);
-            letter-spacing: 1px;
-            padding: 0.75rem;
-            margin-top: 1rem;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 0.875rem 0.75rem;
-            border-radius: 12px;
-            text-decoration: none;
-            color: var(--text-light);
-            font-weight: 600;
-            font-size: 0.95rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-bottom: 0.25rem;
-        }
-
-        .nav-item:hover {
-            background: #f8fafc;
-            color: var(--text-dark);
-        }
-
-        .nav-item.active {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-        }
-
-        .nav-item i {
-            width: 20px;
-            text-align: center;
-        }
+        /* Sidebar styles are now inherited from style.css, but we keep custom page styles below */
 
         /* Main Content */
         .main-content {
@@ -108,6 +44,8 @@
             margin-left: var(--sidebar-width);
             padding: 2rem 3rem;
         }
+
+        /* ... existing unique styles ... */
 
         /* Header */
         .top-bar {
@@ -361,81 +299,23 @@
 
 <body>
     <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="brand">
-            <i class="fas fa-layer-group"></i> {{ teacher.principal.school_name }}
-        </div>
-
-        <div class="menu-label">Main Menu</div>
-        <a href="{% url 'teacher_dashboard' %}" class="nav-item">
-            <i class="fas fa-home"></i> Dashboard
-        </a>
-        <a href="#" class="nav-item">
-            <i class="fas fa-chart-line"></i> Analytics
-        </a>
-        <a href="{% url 'teacher_profile' %}" class="nav-item active">
-            <i class="fas fa-user-circle"></i> Profile
-        </a>
-        <a href="{% url 'mark_attendance' %}" class="nav-item">
-            <i class="fas fa-camera"></i> Mark Attendance
-        </a>
-        <a href="{% url 'teacher_dashboard' %}" class="nav-item">
-            <i class="fas fa-calendar-check"></i> Timetable
-        </a>
-
-        <div class="menu-label" style="margin-top: auto;">Settings</div>
-        <a href="#" class="nav-item">
-            <i class="fas fa-cog"></i> Settings
-        </a>
-        <a href="/" class="nav-item" style="color: #ef4444;">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
-    </div>
+    <!-- Sidebar -->
+    {% include 'sidebar_teacher.html' %}
 
     <!-- Main Content -->
     <div class="main-content">
         <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="search-bar">
-                <i class="fas fa-search" style="color: var(--text-light);"></i>
-                <input type="text" placeholder="Search framework...">
-            </div>
-            <div class="user-actions">
-                <div class="icon-btn"><i class="fas fa-moon"></i></div>
-                <div class="icon-btn"><i class="fas fa-bell"></i></div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-weight: 600; font-size: 0.9rem;">{{ teacher.name }}</span>
-                    {% if face_image %}
-                    <img src="{{ face_image.face_image.url }}" alt="Profile"
-                        style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
-                    {% else %}
-                    <div style="width: 35px; height: 35px; border-radius: 50%; background: #ccc;"></div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+
 
         <!-- Section Header -->
-        <div class="section-header">
-            <h2>Faculty Details</h2>
-            <div style="display: flex; gap: 10px;">
-                <button
-                    style="background: white; color: var(--text-dark); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 8px; cursor: pointer;">Monthly
-                    <i class="fas fa-chevron-down"></i></button>
-                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
-            </div>
-        </div>
 
         <!-- Detail Card -->
         <div class="profile-card">
-            {% if face_image %}
-            <img src="{{ face_image.face_image.url }}" alt="Profile Photo" class="profile-pic">
-            {% else %}
             <div class="profile-pic"
-                style="background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-user" style="font-size: 3rem; color: #94a3b8;"></i>
+                style="background: #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                <img src="https://ui-avatars.com/api/?name={{ teacher.name }}&background=3b82f6&color=fff&size=128&font-size=0.5"
+                    alt="{{ teacher.name }} Avatar" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
-            {% endif %}
 
             <div class="profile-main-info" style="flex: 1;">
                 <h2>{{ teacher.name }}</h2>
@@ -452,7 +332,7 @@
                     </div>
                     <div class="detail-item">
                         <label>Email</label>
-                        <p>{{ teacher.user.email|default:"No email registered" }}</p>
+                        <p>{{ teacher.user.Principal }}</p>
                     </div>
                     <div class="detail-item">
                         <label>School</label>
@@ -501,50 +381,152 @@
             <div class="chart-card">
                 <h3 style="margin-bottom: 2rem;">Attendance Rate</h3>
                 <span class="badge-year">This Month</span>
-                <div class="att-rate">{{ attendance_rate }}%</div>
-                <p style="color: var(--text-light);">
-                    {% if attendance_rate >= 90 %}Excellent track record
-                    {% elif attendance_rate >= 75 %}Good attendance
-                    {% else %}Needs improvement
-                    {% endif %}
-                </p>
-                <div
-                    style="margin-top: 2rem; height: 100px; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                <div style="height: 200px; position: relative; margin-top: 1rem; margin-bottom: 2rem;">
+                    <canvas id="attendanceRateChart"></canvas>
                     <div
-                        style="width: {{ attendance_rate }}%; height: 100%; background: rgba(59, 130, 246, 0.2); border-radius: 12px; border: 1px solid #3b82f6; width: 100%; display: flex; align-items: center; justify-content: center;">
-                        Graphic Visualization
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 700; color: #1e293b;">
+                        {{ attendance_rate }}%
                     </div>
                 </div>
             </div>
 
             <div class="chart-card">
                 <h3>Summary - {{ teacher.name }}</h3>
-                <div class="bars-container">
-                    <!-- Dynamic inline styles for height based on max approx assumption of 30 days -->
-                    <div class="bar-group">
-                        <span style="font-weight: 700;">{{ total_present }}</span>
-                        <div class="bar bg-blue" style="height: calc({{ total_present }} * 5px + 10px);"></div>
-                        <span class="bar-label">Present</span>
-                    </div>
-                    <div class="bar-group">
-                        <span style="font-weight: 700;">{{ late_attendance }}</span>
-                        <div class="bar bg-green" style="height: calc({{ late_attendance }} * 5px + 10px);"></div>
-                        <span class="bar-label">Late</span>
-                    </div>
-                    <div class="bar-group">
-                        <span style="font-weight: 700;">{{ undertime }}</span>
-                        <div class="bar bg-actual-yellow" style="height: calc({{ undertime }} * 5px + 10px);"></div>
-                        <span class="bar-label">Undertime</span>
-                    </div>
-                    <div class="bar-group">
-                        <span style="font-weight: 700;">{{ total_absent }}</span>
-                        <div class="bar bg-red" style="height: calc({{ total_absent }} * 5px + 10px);"></div>
-                        <span class="bar-label">Absent</span>
-                    </div>
+                <div style="height: 250px; margin-top: 2rem;">
+                    <canvas id="summaryChart"></canvas>
                 </div>
             </div>
         </div>
+
+        <!-- Class Report History -->
+        <div class="card" style="margin-top: 2rem;">
+            <div class="section-header" style="margin-bottom: 1.5rem;">
+                <h2>Class Session Reports</h2>
+                <span class="badge" style="background: #f1f5f9; color: var(--text-light);">Recent Sessions</span>
+            </div>
+
+            {% if class_history %}
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #f1f5f9;">
+                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Date
+                        </th>
+                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Subject
+                        </th>
+                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Session
+                            Time</th>
+                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Active
+                            Duration</th>
+                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Logins
+                        </th>
+                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in class_history %}
+                    <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 1rem; color: var(--text-dark); font-weight: 500;">
+                            {{ session.start_time|date:"M d, Y" }}
+                        </td>
+                        <td style="padding: 1rem;">
+                            <span class="badge badge-blue">{{ session.timetable.subject|default:"Extra Class" }}</span>
+                        </td>
+                        <td style="padding: 1rem; color: var(--text-light);">
+                            {{ session.start_time|time:"h:i A" }} - {{ session.end_time|time:"h:i A" }}
+                        </td>
+                        <td style="padding: 1rem;">
+                            <span style="color: var(--success); font-weight: 700;">
+                                {{ session.total_active_duration }}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem; color: var(--text-light);">
+                            {{ session.monitoring_resumption_count }}
+                        </td>
+                        <td style="padding: 1rem;">
+                            <span class="badge" style="background: #dcfce7; color: var(--success);">Completed</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 3rem; color: var(--text-light);">
+                <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+            </div>
+            {% endif %}
+        </div>
     </div>
+    <script>
+        // Attendance Rate Doughnut Chart
+        const ctxRate = document.getElementById('attendanceRateChart').getContext('2d');
+        const attendanceRate = {{ attendance_rate }};
+
+        new Chart(ctxRate, {
+            type: 'doughnut',
+            data: {
+                labels: ['Present (%)', 'Absent/Late (%)'],
+                datasets: [{
+                    data: [attendanceRate, 100 - attendanceRate],
+                    backgroundColor: ['#3b82f6', '#f1f5f9'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                }
+            }
+        });
+
+        // Summary Bar Chart
+        const ctxSummary = document.getElementById('summaryChart').getContext('2d');
+        new Chart(ctxSummary, {
+            type: 'bar',
+            data: {
+                labels: ['Present', 'Late', 'Undertime', 'Absent'],
+                datasets: [{
+                    label: 'Days',
+                    data: [{{ total_present }}, {{ late_attendance }}, {{ undertime }}, {{ total_absent }}],
+            backgroundColor: [
+            '#3b82f6', // Blue for Present
+            '#22c55e', // Green for Late (using Green as per original UI intent, though semantically weird, consistent with badges)
+            '#f59e0b', // Yellow/Orange for Undertime
+            '#ef4444'  // Red for Absent
+        ],
+            borderRadius: 8,
+            borderSkipped: false,
+            barPercentage: 0.6,
+            categoryPercentage: 0.8
+                }]
+            },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: '#e2e8f0',
+                        borderDash: [5, 5]
+                    },
+                    ticks: { stepSize: 1 }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+        });
+    </script>
 </body>
 
 </html>

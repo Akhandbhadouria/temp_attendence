@@ -41,27 +41,8 @@
 
 <body>
     <!-- Sidebar (Principal Context) -->
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <i class="fas fa-school"></i> {{ user.teacher.principal.school_name }}
-        </div>
-
-        <div class="menu-label">Faculty Menu</div>
-        <a href="{% url 'teacher_dashboard' %}" class="nav-item">
-            <i class="fas fa-home"></i> Dashboard
-        </a>
-        <a href="{% url 'teacher_profile' %}" class="nav-item">
-            <i class="fas fa-user-circle"></i> Profile
-        </a>
-        <a href="{% url 'mark_attendance' %}" class="nav-item active">
-            <i class="fas fa-camera"></i> Mark Attendance
-        </a>
-
-        <div class="menu-label" style="margin-top: auto;">Account</div>
-        <a href="/" class="nav-item" style="color: var(--danger);">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
-    </div>
+    <!-- Sidebar (Principal Context) -->
+    {% include 'sidebar_teacher.html' %}
 
     <!-- Main Content -->
     <div class="main-content">

@@ -19,25 +19,7 @@
 </head>
 
 <body>
-    <!-- Sidebar (Principal Context) -->
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <i class="fas fa-layer-group"></i> Admin Portal
-        </div>
-
-        <div class="menu-label">Main Menu</div>
-        <a href="{% url 'principal_dashboard' %}" class="nav-item">
-            <i class="fas fa-home"></i> Dashboard
-        </a>
-        <a href="/add-teacher/" class="nav-item">
-            <i class="fas fa-user-plus"></i> Add Teacher
-        </a>
-
-        <div class="menu-label" style="margin-top: auto;">Account</div>
-        <a href="/" class="nav-item" style="color: var(--danger);">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
-    </div>
+    {% include 'sidebar_principal.html' %}
 
     <!-- Main Content -->
     <div class="main-content">
@@ -49,6 +31,19 @@
             <h1>Manage Schedule</h1>
             <p style="color: var(--text-light);">Define class timings for <strong>{{ teacher.name }}</strong></p>
         </div>
+
+        {% if messages %}
+        <div style="margin-bottom: 2rem;">
+            {% for message in messages %}
+            <div
+                style="padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; background: {% if message.tags == 'error' %}#fee2e2; color: #dc2626; border: 1px solid #fecaca;{% else %}#dcfce7; color: #16a34a; border: 1px solid #bbf7d0;{% endif %} font-weight: 500; display: flex; align-items: center; gap: 10px;">
+                <i
+                    class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <div class="schedule-grid">
             <!-- Add Slot Form -->
@@ -104,7 +99,19 @@
 
             <!-- List of Slots -->
             <div class="card">
-                <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Current Timetable</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 1.25rem;">Current Timetable</h2>
+                    {% if timetable %}
+                    <form method="POST" action="{% url 'delete_all_schedule' teacher.id %}"
+                        onsubmit="return confirm('Are you sure you want to delete the ENTIRE timetable for this teacher? This cannot be undone.');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn"
+                            style="background: #fee2e2; color: #dc2626; padding: 6px 12px; font-size: 0.8rem;">
+                            <i class="fas fa-trash-sweep"></i> Clear All Classes
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
                 {% if timetable %}
                 <table>
                     <thead>

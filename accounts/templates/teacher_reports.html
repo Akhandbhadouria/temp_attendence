@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - {{ teacher.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .report-container {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media print {
+
+            .sidebar,
+            .btn-primary,
+            .section-header button {
+                display: none !important;
+            }
+
+            .main-content {
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'sidebar_principal.html' %}
+
+    <div class="main-content">
+        <div class="report-container">
+            <div style="margin-bottom: 2rem;">
+                <a href="{% url 'principal_dashboard' %}"
+                    style="text-decoration: none; color: var(--text-light); display: inline-flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <h1 style="margin-top: 1rem;">Attendance Report: {{ teacher.name }}</h1>
+                <p style="color: var(--text-light);">{{ teacher.department }} Department</p>
+            </div>
+
+            <!-- Filters -->
+            <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+                <form id="filterForm" method="GET"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; align-items: flex-end;">
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--text-light);">Month
+                            & Year</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <select name="month" class="filter-select" onchange="this.form.submit()"
+                                style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-light);">
+                                <option value="">Select Month</option>
+                                {% for m_id, m_name in months %}
+                                <option value="{{ m_id }}" {% if selected_month == m_id %}selected{% endif %}>{{ m_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <select name="year" class="filter-select" onchange="this.form.submit()"
+                                style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-light);">
+                                {% for y in years %}
+                                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--text-light);">Specific
+                            Date</label>
+                        <input type="date" name="date" value="{{ selected_date }}" onchange="this.form.submit()"
+                            style="width: 100%; padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-light);">
+                    </div>
+
+                    <div>
+                        <a href="{% url 'view_teacher_reports' teacher.id %}"
+                            style="display: inline-block; padding: 0.6rem 1rem; color: var(--text-light); text-decoration: none; font-size: 0.9rem; font-weight: 500;">
+                            <i class="fas fa-redo-alt"></i> Reset Filters
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="section-header" style="margin-bottom: 1.5rem;">
+                    <h2>Completed Class Sessions</h2>
+                    <button onclick="window.print()" class="btn btn-primary"
+                        style="padding: 8px 16px; cursor: pointer;">
+                        <i class="fas fa-print"></i> Print Report
+                    </button>
+                </div>
+
+                {% if class_history %}
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #f1f5f9;">
+                            <th style="text-align: left; padding: 1rem; color: var(--text-light);">Subject</th>
+                            <th style="text-align: left; padding: 1rem; color: var(--text-light);">Expected Time</th>
+                            <th style="text-align: left; padding: 1rem; color: var(--text-light);">Active Time</th>
+                            <th style="text-align: left; padding: 1rem; color: var(--text-light);">Enters</th>
+                            <th style="text-align: left; padding: 1rem; color: var(--text-light);">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in class_history %}
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td style="padding: 1rem;">
+                                <span class="badge badge-blue"
+                                    style="margin-bottom: 4px; display: inline-block;">{{session.timetable.subject|default:"ExtraClass" }}</span>
+                                <div style="font-size: 0.75rem; color: var(--text-light);">{{session.start_time|date:"Md, Y" }}</div>
+                            </td>
+                            <td style="padding: 1rem; color: #4f46e5; font-weight: 700;">
+                                {% if session.timetable %}
+                                <div style="font-size: 0.95rem;">{{ session.timetable.start_time|time:"h:i A" }} -
+                                    {{session.timetable.end_time|time:"h:i A" }}</div>
+                                {% else %}
+                                <span style="font-style: italic; opacity: 0.6; font-weight: 400;">Unscheduled</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem;">
+                                {% if session.is_low_attendance %}
+                                <span
+                                    style="color: #ef4444; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                    {{ session.total_active_duration }}
+                                    <i class="fas fa-exclamation-circle"
+                                        title="Low Attendance (<60% expected time)"></i>
+                                </span>
+                                {% else %}
+                                <span style="color: var(--success); font-weight: 700;">
+                                    {{ session.total_active_duration }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-sign-in-alt" style="color: var(--primary-color);"></i>
+                                    <span>{{ session.monitoring_resumption_count }}</span>
+                                </div>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <span class="badge" style="background: #dcfce7; color: var(--success);">Completed</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div style="text-align: center; padding: 4rem; color: var(--text-light);">
+                    <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>No completed class sessions found for this teacher.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
