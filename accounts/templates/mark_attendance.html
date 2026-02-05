@@ -1,0 +1,190 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.principal.school_name }} - Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .camera-box {
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar (Principal Context) -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-school"></i> {{ user.teacher.principal.school_name }}
+        </div>
+
+        <div class="menu-label">Faculty Menu</div>
+        <a href="{% url 'teacher_dashboard' %}" class="nav-item">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="{% url 'teacher_profile' %}" class="nav-item">
+            <i class="fas fa-user-circle"></i> Profile
+        </a>
+        <a href="{% url 'mark_attendance' %}" class="nav-item active">
+            <i class="fas fa-camera"></i> Mark Attendance
+        </a>
+
+        <div class="menu-label" style="margin-top: auto;">Account</div>
+        <a href="/" class="nav-item" style="color: var(--danger);">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div style="margin-bottom: 2rem; max-width: 1000px; margin-left: auto; margin-right: auto;">
+            <a href="{% url 'teacher_dashboard' %}"
+                style="color: var(--text-light); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.9rem;">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h1>Mark Daily Attendance</h1>
+            <p style="color: var(--text-light);">Scan your face to mark your presence for {{ today|date:"l, d F Y" }}.
+            </p>
+        </div>
+
+        <div class="split-layout">
+            <!-- Left: Instructions/Status -->
+            <div class="card"
+                style="display: flex; flex-direction: column; justify-content: center; min-height: 300px;">
+                <div style="text-align: center;">
+                    <div
+                        style="width: 80px; height: 80px; border-radius: 50%; background: #e0f2fe; color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 1.5rem;">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">Ready to Scan</h2>
+                    <p style="color: var(--text-light); margin-bottom: 2rem; line-height: 1.6;">
+                        Please remove any glasses or masks and look directly at the camera. Ensure you are in a well-lit
+                        environment.
+                    </p>
+
+                    <div id="statusMessage"
+                        style="padding: 1rem; border-radius: 12px; display: none; font-weight: 500;"></div>
+                </div>
+            </div>
+
+            <!-- Right: Camera -->
+            <div class="card">
+                <div class="camera-box">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <button id="captureBtn" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-camera"></i> Scan Face & Mark Present
+                    </button>
+                    <a href="{% url 'teacher_dashboard' %}" class="btn btn-secondary"
+                        style="width: 100%; margin-top: 1rem; justify-content: center;">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Access camera
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing camera: ", err);
+                statusMessage.style.display = 'block';
+                statusMessage.style.background = '#fee2e2';
+                statusMessage.style.color = '#ef4444';
+                statusMessage.innerText = 'Error accessing camera. Please check permissions.';
+            });
+
+        captureBtn.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = canvas.toDataURL('image/jpeg');
+
+            captureBtn.disabled = true;
+            captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+            statusMessage.style.display = 'none';
+
+            fetch('{% url "mark_attendance" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `face_image=${encodeURIComponent(imageData)}`
+            })
+                .then(response => response.json())
+                .then(data => {
+                    statusMessage.style.display = 'block';
+
+                    if (data.status === 'success') {
+                        statusMessage.style.background = '#dcfce7';
+                        statusMessage.style.color = '#15803d';
+                        statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                        captureBtn.innerHTML = '<i class="fas fa-check"></i> Success';
+
+                        setTimeout(() => {
+                            window.location.href = "{% url 'teacher_dashboard' %}";
+                        }, 2000);
+                    } else {
+                        statusMessage.style.background = '#fee2e2';
+                        statusMessage.style.color = '#b91c1c';
+                        statusMessage.innerHTML = '<i class="fas fa-times-circle"></i> ' + data.message;
+                        captureBtn.disabled = false;
+                        captureBtn.innerHTML = '<i class="fas fa-redo"></i> Try Again';
+                    }
+                })
+                .catch(error => {
+                    captureBtn.disabled = false;
+                    captureBtn.innerHTML = '<i class="fas fa-camera"></i> Scan Face & Mark Present';
+                    statusMessage.style.display = 'block';
+                    statusMessage.style.background = '#fee2e2';
+                    statusMessage.style.color = '#b91c1c';
+                    statusMessage.innerText = 'An error occurred. Please try again.';
+                });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,550 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ teacher.name }} - Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --sidebar-width: 260px;
+            --primary-blue: #3b82f6;
+            --text-dark: #1e293b;
+            --text-light: #64748b;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            border-right: 1px solid var(--border-color);
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 1rem 0.75rem;
+            margin-bottom: 2rem;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .brand i {
+            font-size: 1.5rem;
+            color: var(--primary-blue);
+        }
+
+        .menu-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-light);
+            letter-spacing: 1px;
+            padding: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.875rem 0.75rem;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-item:hover {
+            background: #f8fafc;
+            color: var(--text-dark);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 2rem 3rem;
+        }
+
+        /* Header */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .search-bar {
+            background: var(--white);
+            padding: 10px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 400px;
+            border: 1px solid transparent;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-bar input {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--white);
+            color: var(--text-light);
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Profile Top Section */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .download-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .profile-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #f8fafc;
+        }
+
+        .profile-main-info h2 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-details-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3rem;
+            margin-top: 1rem;
+        }
+
+        .detail-item label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .detail-item p {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* Stats Row */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .stat-card:nth-child(1) .stat-icon {
+            background: #e0f2fe;
+            color: #0ea5e9;
+        }
+
+        .stat-card:nth-child(2) .stat-icon {
+            background: #dcfce7;
+            color: #22c55e;
+        }
+
+        .stat-card:nth-child(3) .stat-icon {
+            background: #fef9c3;
+            color: #eab308;
+        }
+
+        .stat-card:nth-child(4) .stat-icon {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .stat-info h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .stat-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Bottom Section */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .att-rate {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 1.5rem 0;
+        }
+
+        .badge-year {
+            background: #e0f2fe;
+            color: #0ea5e9;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Mock Bars */
+        .bars-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 200px;
+            padding-top: 2rem;
+        }
+
+        .bar-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 20%;
+        }
+
+        .bar {
+            width: 100%;
+            border-radius: 12px 12px 4px 4px;
+            transition: height 0.5s ease;
+        }
+
+        .bg-blue {
+            background-color: #3b82f6;
+        }
+
+        .bg-green {
+            background-color: #84cc16;
+        }
+
+        .bg-yellow {
+            background-color: #fca5a5;
+        }
+
+        /* Based on image, third is yellowish/orange, actually wait. Image has Blue, Green, Cream/Yellow, Red */
+        .bg-actual-yellow {
+            background-color: #fcd34d;
+        }
+
+        .bg-red {
+            background-color: #ef4444;
+        }
+
+        .bar-label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="brand">
+            <i class="fas fa-layer-group"></i> {{ teacher.principal.school_name }}
+        </div>
+
+        <div class="menu-label">Main Menu</div>
+        <a href="{% url 'teacher_dashboard' %}" class="nav-item">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-chart-line"></i> Analytics
+        </a>
+        <a href="{% url 'teacher_profile' %}" class="nav-item active">
+            <i class="fas fa-user-circle"></i> Profile
+        </a>
+        <a href="{% url 'mark_attendance' %}" class="nav-item">
+            <i class="fas fa-camera"></i> Mark Attendance
+        </a>
+        <a href="{% url 'teacher_dashboard' %}" class="nav-item">
+            <i class="fas fa-calendar-check"></i> Timetable
+        </a>
+
+        <div class="menu-label" style="margin-top: auto;">Settings</div>
+        <a href="#" class="nav-item">
+            <i class="fas fa-cog"></i> Settings
+        </a>
+        <a href="/" class="nav-item" style="color: #ef4444;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="search-bar">
+                <i class="fas fa-search" style="color: var(--text-light);"></i>
+                <input type="text" placeholder="Search framework...">
+            </div>
+            <div class="user-actions">
+                <div class="icon-btn"><i class="fas fa-moon"></i></div>
+                <div class="icon-btn"><i class="fas fa-bell"></i></div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 600; font-size: 0.9rem;">{{ teacher.name }}</span>
+                    {% if face_image %}
+                    <img src="{{ face_image.face_image.url }}" alt="Profile"
+                        style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                    <div style="width: 35px; height: 35px; border-radius: 50%; background: #ccc;"></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Header -->
+        <div class="section-header">
+            <h2>Faculty Details</h2>
+            <div style="display: flex; gap: 10px;">
+                <button
+                    style="background: white; color: var(--text-dark); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 8px; cursor: pointer;">Monthly
+                    <i class="fas fa-chevron-down"></i></button>
+                <button class="download-btn"><i class="fas fa-download"></i> Download</button>
+            </div>
+        </div>
+
+        <!-- Detail Card -->
+        <div class="profile-card">
+            {% if face_image %}
+            <img src="{{ face_image.face_image.url }}" alt="Profile Photo" class="profile-pic">
+            {% else %}
+            <div class="profile-pic"
+                style="background: #e2e8f0; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-user" style="font-size: 3rem; color: #94a3b8;"></i>
+            </div>
+            {% endif %}
+
+            <div class="profile-main-info" style="flex: 1;">
+                <h2>{{ teacher.name }}</h2>
+                <p style="color: var(--text-light); margin-bottom: 1.5rem;">Senior Faculty Member</p>
+
+                <div class="profile-details-grid">
+                    <div class="detail-item">
+                        <label>ID</label>
+                        <p>ID: {{ teacher.user.id|stringformat:"04d" }}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Username</label>
+                        <p>{{ teacher.user.username }}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Email</label>
+                        <p>{{ teacher.user.email|default:"No email registered" }}</p>
+                    </div>
+                    <div class="detail-item">
+                        <label>School</label>
+                        <p>{{ teacher.principal.school_name }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #e0f2fe; color: #0ea5e9;"><i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_present }} Days</h3>
+                    <p>Total Present</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #dcfce7; color: #22c55e;"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <h3>{{ late_attendance }} Days</h3>
+                    <p>Late Arrival</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #fef9c3; color: #eab308;"><i class="fas fa-history"></i></div>
+                <div class="stat-info">
+                    <h3>{{ undertime }} Days</h3>
+                    <p>Undertime</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #fee2e2; color: #ef4444;"><i class="fas fa-user-times"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_absent }} Days</h3>
+                    <p>Total Absent</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Grid: Attendance Rate & Summary -->
+        <div class="bottom-grid">
+            <div class="chart-card">
+                <h3 style="margin-bottom: 2rem;">Attendance Rate</h3>
+                <span class="badge-year">This Month</span>
+                <div class="att-rate">{{ attendance_rate }}%</div>
+                <p style="color: var(--text-light);">
+                    {% if attendance_rate >= 90 %}Excellent track record
+                    {% elif attendance_rate >= 75 %}Good attendance
+                    {% else %}Needs improvement
+                    {% endif %}
+                </p>
+                <div
+                    style="margin-top: 2rem; height: 100px; background: #f8fafc; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                    <div
+                        style="width: {{ attendance_rate }}%; height: 100%; background: rgba(59, 130, 246, 0.2); border-radius: 12px; border: 1px solid #3b82f6; width: 100%; display: flex; align-items: center; justify-content: center;">
+                        Graphic Visualization
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Summary - {{ teacher.name }}</h3>
+                <div class="bars-container">
+                    <!-- Dynamic inline styles for height based on max approx assumption of 30 days -->
+                    <div class="bar-group">
+                        <span style="font-weight: 700;">{{ total_present }}</span>
+                        <div class="bar bg-blue" style="height: calc({{ total_present }} * 5px + 10px);"></div>
+                        <span class="bar-label">Present</span>
+                    </div>
+                    <div class="bar-group">
+                        <span style="font-weight: 700;">{{ late_attendance }}</span>
+                        <div class="bar bg-green" style="height: calc({{ late_attendance }} * 5px + 10px);"></div>
+                        <span class="bar-label">Late</span>
+                    </div>
+                    <div class="bar-group">
+                        <span style="font-weight: 700;">{{ undertime }}</span>
+                        <div class="bar bg-actual-yellow" style="height: calc({{ undertime }} * 5px + 10px);"></div>
+                        <span class="bar-label">Undertime</span>
+                    </div>
+                    <div class="bar-group">
+                        <span style="font-weight: 700;">{{ total_absent }}</span>
+                        <div class="bar bg-red" style="height: calc({{ total_absent }} * 5px + 10px);"></div>
+                        <span class="bar-label">Absent</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

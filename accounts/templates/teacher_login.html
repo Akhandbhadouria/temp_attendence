@@ -5,69 +5,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Login</title>
+    <title>Teacher Login - FaceAuth</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            justify-content: flex-start;
-            padding-top: 50px;
-        }
-
-        .form-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 1.5rem;
-            padding: 3rem;
-            max-width: 400px;
-            width: 100%;
-            margin: auto;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #cbd5e1;
-        }
-
-        input {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.2);
-            color: white;
-            font-size: 1rem;
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #15803d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 8px 20px rgba(34, 197, 94, 0.15);
         }
     </style>
 </head>
 
 <body>
-    <div class="form-card">
-        <h2 style="text-align: center; margin-bottom: 2rem;">Teacher Login</h2>
-        {% if error %}
-        <div
-            style="background: rgba(220, 38, 38, 0.2); color: #fca5a5; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
-            {{ error }}
+    <div class="auth-container fade-in">
+        <div class="auth-card">
+            <div style="margin-bottom: 2.5rem;">
+                <div class="icon-wrapper">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <h1 style="font-size: 2rem; margin-bottom: 0.75rem; font-weight: 800; letter-spacing: -0.5px;">Faculty
+                    Login</h1>
+                <p style="color: var(--text-light); font-size: 1rem; font-weight: 500;">Login with username and password
+                </p>
+            </div>
+
+            {% if error %}
+            <div
+                style="background: #fee2e2; color: #b91c1c; padding: 1rem; border-radius: 14px; margin-bottom: 1.5rem; font-size: 0.9rem; font-weight: 600;">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div style="display: flex; flex-direction: column; gap: 1.5rem; text-align: left;">
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">Username</label>
+                        <input type="text" name="username" class="input-field" required
+                            placeholder="Enter your username" autofocus>
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">Password</label>
+                        <input type="password" name="password" class="input-field" required
+                            placeholder="Enter your password">
+                    </div>
+                    <button type="submit" class="btn btn-primary"
+                        style="width: 100%; margin-top: 0.5rem; padding: 1rem;">
+                        <i class="fas fa-sign-in-alt"></i> Login to Dashboard
+                    </button>
+                </div>
+            </form>
+
+            <div
+                style="margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center;">
+                <a href="/"
+                    style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; font-weight: 600;">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+                <span style="margin: 0 1rem; color: var(--border-color);">•</span>
+                <a href="/login/"
+                    style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 700;">
+                    Login with Face ID
+                </a>
+            </div>
         </div>
-        {% endif %}
-        <form method="POST">
-            {% csrf_token %}
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Login</button>
-        </form>
     </div>
 </body>
 

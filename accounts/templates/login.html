@@ -1,165 +1,152 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Face Recognition</title>
+    <title>Face Login - FaceAuth</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f7fa;
-            margin: 0;
-            padding: 0;
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
         }
 
-        .login-container {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 30px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 24px;
-        }
-
-        input[type="text"] {
+        .camera-box {
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
             width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-
-        #camera-container {
-            margin-bottom: 20px;
-            position: relative;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 1.5rem 0;
+            border: 3px solid var(--border-color);
         }
 
         #video {
-            border-radius: 4px;
             width: 100%;
-            height: auto;
-        }
-
-        #capture-button {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        #capture-button:hover {
-            background-color: #45a049;
-        }
-
-        canvas {
-            display: none;
-        }
-
-        button[type="submit"] {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-
-        #message {
-            margin-top: 20px;
-            color: #555;
-            font-size: 14px;
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 20px;
-                width: 90%;
-            }
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
         }
     </style>
 </head>
 
 <body>
-    <div class="login-container">
-        <h2>Login with Face Recognition</h2>
-        <form id="login-form">
-            <input type="text" id="username" name="username" placeholder="Username" required>
-
-            <div id="camera-container">
-                <video id="video" width="100%" height="auto" autoplay></video>
-                <button type="button" id="capture-button">Capture Face</button>
-                <canvas id="canvas" width="300" height="200"></canvas>
+    <div class="auth-container fade-in">
+        <div class="auth-card" style="max-width: 520px;">
+            <div style="margin-bottom: 2rem;">
+                <div class="icon-wrapper">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <h1 style="font-size: 2rem; margin-bottom: 0.75rem; font-weight: 800; letter-spacing: -0.5px;">Face
+                    Recognition Login</h1>
+                <p style="color: var(--text-light); font-size: 1rem; font-weight: 500;">Secure access with facial
+                    authentication</p>
             </div>
 
-            <button type="submit">Login</button>
-        </form>
-        <div id="message"></div>
+            <form id="loginForm" onsubmit="submitLogin(event)">
+                <div style="text-align: left;">
+                    <label
+                        style="display: block; margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">Username</label>
+                    <input type="text" id="username" name="username" class="input-field" required
+                        placeholder="Enter your username" autofocus>
+                </div>
+
+                <div class="camera-box">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                </div>
+
+                <div id="statusMessage"
+                    style="padding: 1rem; border-radius: 14px; display: none; font-size: 0.9rem; margin-bottom: 1rem; font-weight: 600;">
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" id="captureBtn" class="btn btn-secondary" style="flex: 1; padding: 1rem;">
+                        <i class="fas fa-camera"></i> Capture Face
+                    </button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary" style="flex: 1; padding: 1rem;"
+                        disabled>
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                </div>
+            </form>
+
+            <div
+                style="margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center;">
+                <a href="/"
+                    style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; font-weight: 600;">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+                <span style="margin: 0 1rem; color: var(--border-color);">•</span>
+                <a href="/teacher/login-password/"
+                    style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 700;">
+                    Login with Password
+                </a>
+            </div>
+        </div>
     </div>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
-        const captureButton = document.getElementById('capture-button');
-        const loginForm = document.getElementById('login-form');
-        const messageDiv = document.getElementById('message');
-
+        const captureBtn = document.getElementById('captureBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMessage = document.getElementById('statusMessage');
         let capturedImage = null;
 
-        // Access the camera and start the video stream
+        // Access camera
         navigator.mediaDevices.getUserMedia({ video: true })
-            .then((stream) => {
+            .then(stream => {
                 video.srcObject = stream;
             })
-            .catch((err) => {
-                console.log('Error accessing camera: ' + err);
-                messageDiv.innerText = 'Camera not accessible. Please check permissions.';
+            .catch(err => {
+                console.error('Error accessing camera:', err);
+                statusMessage.style.display = 'block';
+                statusMessage.style.background = '#fee2e2';
+                statusMessage.style.color = '#b91c1c';
+                statusMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> Camera access denied. Please allow permission.';
             });
 
-        // Capture image from the video stream
-        captureButton.addEventListener('click', () => {
-            if (!video.srcObject) {
-                messageDiv.innerText = "Camera is not available.";
-                return;
-            }
-
+        captureBtn.addEventListener('click', () => {
             const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);  // Draw video frame to canvas
-            capturedImage = canvas.toDataURL('image/jpeg'); // Convert captured image to base64 format
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            messageDiv.innerText = "Face captured successfully! Ready to login.";
+            capturedImage = canvas.toDataURL('image/jpeg');
+
+            statusMessage.style.display = 'block';
+            statusMessage.style.background = '#dcfce7';
+            statusMessage.style.color = '#15803d';
+            statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> Face captured successfully! Ready to login.';
+
+            submitBtn.disabled = false;
+            captureBtn.innerHTML = '<i class="fas fa-redo"></i> Retake';
         });
 
-        // Handle form submission
-        loginForm.onsubmit = async (e) => {
-            e.preventDefault();
+        function submitLogin(event) {
+            event.preventDefault();
 
             if (!capturedImage) {
-                messageDiv.innerText = "Please capture your face first.";
+                statusMessage.style.display = 'block';
+                statusMessage.style.background = '#fee2e2';
+                statusMessage.style.color = '#b91c1c';
+                statusMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please capture your face first.';
                 return;
             }
 
@@ -167,26 +154,39 @@
             formData.append('username', document.getElementById('username').value);
             formData.append('face_image', capturedImage);
 
-            try {
-                const response = await fetch('/login/', {
-                    method: 'POST',
-                    body: formData
-                });
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
 
-                const data = await response.json();
-                if (data.status === 'success') {
-                    messageDiv.innerText = data.message;
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
+            fetch('/login/', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    statusMessage.style.display = 'block';
+                    if (data.status === 'success') {
+                        statusMessage.style.background = '#dcfce7';
+                        statusMessage.style.color = '#15803d';
+                        statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                        setTimeout(() => window.location.href = data.redirect, 1500);
+                    } else {
+                        statusMessage.style.background = '#fee2e2';
+                        statusMessage.style.color = '#b91c1c';
+                        statusMessage.innerHTML = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Login failed.');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
                     }
-                } else {
-                    messageDiv.innerText = data.message || 'Login failed.';
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                messageDiv.innerText = 'An error occurred while processing your login.';
-            }
-        };
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusMessage.style.display = 'block';
+                    statusMessage.style.background = '#fee2e2';
+                    statusMessage.style.color = '#b91c1c';
+                    statusMessage.innerText = 'An error occurred. Please try again.';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                });
+        }
     </script>
 </body>
 

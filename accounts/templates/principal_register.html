@@ -5,89 +5,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Principal Registration</title>
+    <title>Register Organization - FaceAuth</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            justify-content: flex-start;
-            padding-top: 50px;
-        }
-
-        .form-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 1.5rem;
-            padding: 3rem;
-            max-width: 500px;
-            width: 100%;
-            margin: auto;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #cbd5e1;
-        }
-
-        input {
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.2);
-            color: white;
-            font-size: 1rem;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--primary-color);
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
         }
     </style>
 </head>
 
 <body>
-    <div class="form-card">
-        <h2 style="text-align: center; margin-bottom: 2rem;">Principal Registration</h2>
-        <form id="registerForm">
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required>
+    <div class="auth-container fade-in">
+        <div class="auth-card">
+            <div style="margin-bottom: 2.5rem;">
+                <div class="icon-wrapper">
+                    <i class="fas fa-school"></i>
+                </div>
+                <h1 style="font-size: 2rem; margin-bottom: 0.75rem; font-weight: 800; letter-spacing: -0.5px;">Register
+                    Organization</h1>
+                <p style="color: var(--text-light); font-size: 1rem; font-weight: 500;">Create your school's admin
+                    account</p>
             </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required>
+
+            <form id="registerForm" onsubmit="submitForm(event)">
+                {% csrf_token %}
+                <div style="display: flex; flex-direction: column; gap: 1.5rem; text-align: left;">
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">School
+                            Name</label>
+                        <input type="text" name="school_name" class="input-field" required
+                            placeholder="e.g. Springfield High School" autofocus>
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">Admin
+                            Username</label>
+                        <input type="text" name="username" class="input-field" required placeholder="Choose a username">
+                    </div>
+                    <div>
+                        <label
+                            style="display: block; margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">Password</label>
+                        <input type="password" name="password" class="input-field" required
+                            placeholder="Create a strong password">
+                    </div>
+
+                    <div id="statusMessage"
+                        style="padding: 1rem; border-radius: 14px; display: none; font-size: 0.9rem; font-weight: 600;">
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn btn-primary"
+                        style="width: 100%; margin-top: 0.5rem; padding: 1rem;">
+                        <i class="fas fa-check-circle"></i> Create Account
+                    </button>
+                </div>
+            </form>
+
+            <div
+                style="margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center;">
+                <a href="/"
+                    style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; font-weight: 600;">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+                <span style="margin: 0 1rem; color: var(--border-color);">•</span>
+                <a href="/principal/login/"
+                    style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 700;">
+                    Already have an account?
+                </a>
             </div>
-            <div class="form-group">
-                <label>School Name</label>
-                <input type="text" name="school_name" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Register</button>
-        </form>
-        <p style="text-align: center; margin-top: 1rem; color: #94a3b8;">
-            Already have an account? <a href="/principal/login/" style="color: var(--secondary-color);">Login</a>
-        </p>
+        </div>
     </div>
 
     <script>
-        document.getElementById('registerForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const response = await fetch('', { method: 'POST', body: formData });
-            const data = await response.json();
-            if (data.status === 'success') {
-                window.location.href = data.redirect;
-            } else {
-                alert(data.message);
-            }
-        };
+        function submitForm(event) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById('registerForm'));
+            const submitBtn = document.getElementById('submitBtn');
+            const statusMessage = document.getElementById('statusMessage');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+
+            fetch('{% url "principal_register" %}', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    statusMessage.style.display = 'block';
+                    if (data.status === 'success') {
+                        statusMessage.style.background = '#dcfce7';
+                        statusMessage.style.color = '#15803d';
+                        statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                        setTimeout(() => window.location.href = data.redirect, 1500);
+                    } else {
+                        statusMessage.style.background = '#fee2e2';
+                        statusMessage.style.color = '#b91c1c';
+                        statusMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + data.message;
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Create Account';
+                    }
+                })
+                .catch(error => {
+                    statusMessage.style.display = 'block';
+                    statusMessage.style.background = '#fee2e2';
+                    statusMessage.style.color = '#b91c1c';
+                    statusMessage.innerText = 'An error occurred. Please try again.';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Create Account';
+                });
+        }
     </script>
 </body>
 

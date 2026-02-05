@@ -5,82 +5,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Dashboard</title>
+    <title>{{ teacher.name }} - Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .profile-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .school-badge {
-            background: rgba(236, 72, 153, 0.2);
-            color: #f9a8d4;
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: inline-block;
-            margin-bottom: 1rem;
-            border: 1px solid rgba(236, 72, 153, 0.3);
-        }
-
-        .timetable-card {
-            background: var(--card-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            backdrop-filter: blur(12px);
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            color: #cbd5e1;
-        }
-
-        th,
-        td {
-            padding: 1rem;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        th {
-            color: var(--primary-color);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
-    </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="profile-header">
-            <span class="school-badge"><i class="fas fa-school"></i> {{ teacher.principal.school_name }}</span>
-            <h1>Welcome, {{ teacher.name }}</h1>
-            <p style="color: #94a3b8;">Faculty Dashboard</p>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-school"></i> {{ teacher.principal.school_name }}
         </div>
 
-        <div class="timetable-card">
+        <div class="menu-label">Faculty Menu</div>
+        <a href="{% url 'teacher_dashboard' %}" class="nav-item active">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="{% url 'teacher_profile' %}" class="nav-item">
+            <i class="fas fa-user-circle"></i> Profile
+        </a>
+        <a href="{% url 'mark_attendance' %}" class="nav-item">
+            <i class="fas fa-camera"></i> Mark Attendance
+        </a>
+
+        <div class="menu-label" style="margin-top: auto;">Account</div>
+        <a href="/" class="nav-item" style="color: var(--danger);">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+            <div>
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">Welcome, {{ teacher.name }}</h1>
+                <p style="color: var(--text-light);">Faculty Dashboard</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <a href="{% url 'mark_attendance' %}" class="btn btn-primary">
+                    <i class="fas fa-camera"></i> Mark Attendance
+                </a>
+            </div>
+        </div>
+
+        <!-- Timetable Section -->
+        <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2><i class="far fa-calendar-alt" style="margin-right: 10px; color: var(--secondary-color);"></i> My
-                    Timetable</h2>
-                <span style="font-size: 0.9rem; color: #64748b;">Current Week</span>
+                <h2 style="font-size: 1.25rem;"><i class="far fa-calendar-alt"
+                        style="margin-right: 10px; color: var(--primary-color);"></i> Weekly Schedule</h2>
+                <span class="badge" style="background: #f1f5f9; color: var(--text-light);">Current Week</span>
             </div>
 
             {% if timetable %}
@@ -90,37 +64,34 @@
                         <th>Day</th>
                         <th>Time</th>
                         <th>Subject</th>
-                        <th>Room/Status</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for slot in timetable %}
                     <tr>
-                        <td style="font-weight: 600; color: white;">{{ slot.get_day_display }}</td>
+                        <td>
+                            <span style="font-weight: 600; color: var(--text-dark);">{{ slot.get_day_display }}</span>
+                        </td>
                         <td>{{ slot.start_time|time:"h:i A" }} - {{ slot.end_time|time:"h:i A" }}</td>
                         <td>
-                            <span
-                                style="background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 4px 10px; border-radius: 4px; font-size: 0.9em;">
+                            <span class="badge badge-blue">
                                 {{ slot.subject }}
                             </span>
                         </td>
-                        <td><span style="color: #4ade80;">Active</span></td>
+                        <td><span style="color: var(--success); font-weight: 600; font-size: 0.9rem;">● Scanning</span>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
             {% else %}
-            <div style="text-align: center; padding: 3rem; color: #94a3b8;">
-                <i class="far fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <div style="text-align: center; padding: 4rem; color: var(--text-light);">
+                <i class="far fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
                 <p>No classes have been scheduled for you yet.</p>
+                <p style="font-size: 0.9rem; margin-top: 0.5rem;">Contact your Principal to set up your timetable.</p>
             </div>
             {% endif %}
-        </div>
-
-        <div style="margin-top: 3rem;">
-            <a href="/" class="btn btn-secondary">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
         </div>
     </div>
 </body>

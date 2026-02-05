@@ -19,9 +19,26 @@ class Principal(models.Model):
         return f"Principal: {self.user.username}"
 
 class Teacher(models.Model):
+    DEPARTMENT_CHOICES = (
+        ('CS', 'Computer Science'),
+        ('MATH', 'Mathematics'),
+        ('PHY', 'Physics'),
+        ('CHEM', 'Chemistry'),
+        ('BIO', 'Biology'),
+        ('ENG', 'English'),
+        ('HIST', 'History'),
+        ('GEO', 'Geography'),
+        ('ECON', 'Economics'),
+        ('COMM', 'Commerce'),
+        ('PE', 'Physical Education'),
+        ('ART', 'Arts'),
+        ('OTHER', 'Other'),
+    )
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     principal = models.ForeignKey(Principal, on_delete=models.CASCADE, related_name='teachers')
     name = models.CharField(max_length=100)
+    department = models.CharField(max_length=10, choices=DEPARTMENT_CHOICES, default='OTHER')
 
     def __str__(self):
         return f"{self.name} (School: {self.principal.school_name})"
@@ -44,3 +61,12 @@ class Timetable(models.Model):
 
     def __str__(self):
         return f"{self.subject} - {self.teacher.name}"
+
+class TeacherAttendance(models.Model):
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='attendance_records')
+    date = models.DateField(auto_now_add=True)
+    time = models.TimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='Present')
+
+    def __str__(self):
+        return f"{self.teacher.name} - {self.date}"

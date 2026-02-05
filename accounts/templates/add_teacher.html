@@ -5,125 +5,259 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add New Teacher</title>
+    <title>Add Teacher - Admin Portal</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            justify-content: flex-start;
-            padding-top: 50px;
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+            max-width: 1000px;
+            margin: 0 auto;
         }
 
-        .form-card {
-            background: var(--card-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            max-width: 600px;
+        .camera-box {
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
             width: 100%;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .form-group {
-            margin-bottom: 1rem;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #cbd5e1;
-        }
-
-        input {
+        #video {
             width: 100%;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(0, 0, 0, 0.2);
-            color: white;
-            font-size: 1rem;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
         }
 
-        #video,
-        #canvas {
+        .capture-overlay {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
             width: 100%;
-            border-radius: 0.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .hidden {
-            display: none;
+            display: flex;
+            justify-content: center;
         }
     </style>
 </head>
 
 <body>
-    <div class="form-card">
-        <h2 style="margin-bottom: 1.5rem;">Add New Teacher</h2>
-        <form id="addTeacherForm">
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" name="name" required>
-            </div>
-            <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required>
+    <!-- Sidebar (Principal Context) -->
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-layer-group"></i> Admin Portal
+        </div>
+
+        <div class="menu-label">Main Menu</div>
+        <a href="{% url 'principal_dashboard' %}" class="nav-item">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="/add-teacher/" class="nav-item active">
+            <i class="fas fa-user-plus"></i> Add Teacher
+        </a>
+
+        <div class="menu-label" style="margin-top: auto;">Account</div>
+        <a href="/" class="nav-item" style="color: var(--danger);">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div style="margin-bottom: 2rem; max-width: 1000px; margin-left: auto; margin-right: auto;">
+            <a href="{% url 'principal_dashboard' %}"
+                style="color: var(--text-light); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.9rem;">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h1>Register New Faculty</h1>
+            <p style="color: var(--text-light);">Create a new teacher account and register their face ID.</p>
+        </div>
+
+        <div class="split-layout">
+            <!-- Left: Form -->
+            <div class="card">
+                <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Account Details</h2>
+                <form id="teacherForm" onsubmit="submitForm(event)">
+                    {% csrf_token %}
+                    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <div>
+                            <label
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Full
+                                Name</label>
+                            <input type="text" id="name" name="name" class="input-field" required
+                                placeholder="e.g. John Doe">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Username</label>
+                            <input type="text" id="username" name="username" class="input-field" required
+                                placeholder="johndoe123">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Password</label>
+                            <input type="password" id="password" name="password" class="input-field" required
+                                placeholder="********">
+                        </div>
+                        <div>
+                            <label
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Department</label>
+                            <select id="department" name="department" class="input-field" required>
+                                <option value="">Select Department</option>
+                                <option value="CS">Computer Science</option>
+                                <option value="MATH">Mathematics</option>
+                                <option value="PHY">Physics</option>
+                                <option value="CHEM">Chemistry</option>
+                                <option value="BIO">Biology</option>
+                                <option value="ENG">English</option>
+                                <option value="HIST">History</option>
+                                <option value="GEO">Geography</option>
+                                <option value="ECON">Economics</option>
+                                <option value="COMM">Commerce</option>
+                                <option value="PE">Physical Education</option>
+                                <option value="ART">Arts</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+
+                        <input type="hidden" id="face_image" name="face_image">
+
+                        <div id="statusMessage"
+                            style="margin-top: 10px; font-size: 0.9rem; display:none; padding:10px; border-radius:8px;">
+                        </div>
+
+                        <button type="submit" id="submitBtn" class="btn btn-primary"
+                            style="width: 100%; margin-top: 1rem;" disabled>
+                            Complete Registration
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <div class="form-group">
-                <label>Capture Face</label>
-                <video id="video" autoplay></video>
-                <canvas id="canvas" class="hidden"></canvas>
-                <button type="button" id="captureBtn" class="btn btn-secondary"
-                    style="margin-top: 5px;">Capture</button>
-                <p id="captureStatus" style="color: #4ade80; display: none; margin-top: 5px;">Face Captured!</p>
-            </div>
+            <!-- Right: Camera -->
+            <div class="card">
+                <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Face Registration</h2>
+                <div class="camera-box">
+                    <video id="video" autoplay playsinline></video>
+                    <img id="capturedImage"
+                        style="display: none; width: 100%; height: 100%; object-fit: cover; border-radius: 16px;">
+                    <canvas id="canvas" style="display: none;"></canvas>
+                </div>
 
-            <input type="hidden" name="face_image" id="faceImageInput">
-            <button type="submit" class="btn btn-primary">Register Teacher</button>
-        </form>
-        <p style="margin-top: 1rem;"><a href="/principal/dashboard/" style="color: #94a3b8;">&larr; Back to
-                Dashboard</a></p>
+                <div style="margin-top: 1.5rem; text-align: center;">
+                    <button id="captureBtn" class="btn btn-secondary" style="width: 100%;">
+                        <i class="fas fa-camera"></i> Capture Face
+                    </button>
+                    <button id="retakeBtn" class="btn btn-secondary" style="width: 100%; display: none;">
+                        <i class="fas fa-redo"></i> Retake Photo
+                    </button>
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-light);">
+                        Ensure the face is clearly visible and well-lit.
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
+        const capturedImage = document.getElementById('capturedImage');
+        const faceInput = document.getElementById('face_image');
         const captureBtn = document.getElementById('captureBtn');
-        const faceImageInput = document.getElementById('faceImageInput');
-        const captureStatus = document.getElementById('captureStatus');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMessage = document.getElementById('statusMessage');
 
+        // Access WebCam
         navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => video.srcObject = stream)
-            .catch(err => alert("Camera access denied"));
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                console.error("Error accessing camera: ", err);
+                statusMessage.style.display = 'block';
+                statusMessage.style.background = '#fee2e2';
+                statusMessage.style.color = '#ef4444';
+                statusMessage.innerText = 'Camera access denied. Please allow permission.';
+            });
 
-        captureBtn.onclick = () => {
+        // Capture Logic
+        captureBtn.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            faceImageInput.value = canvas.toDataURL('image/jpeg');
-            captureStatus.style.display = 'block';
-            video.pause();
-        };
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        document.getElementById('addTeacherForm').onsubmit = async (e) => {
-            e.preventDefault();
-            if (!faceImageInput.value) return alert("Please capture face first!");
+            const imageData = canvas.toDataURL('image/jpeg');
+            faceInput.value = imageData;
 
-            const formData = new FormData(e.target);
-            const response = await fetch('', { method: 'POST', body: formData });
-            const data = await response.json();
+            // Show captured image preview
+            capturedImage.src = imageData;
+            capturedImage.style.display = 'block';
+            video.style.display = 'none';
 
-            if (data.status === 'success') {
-                alert(data.message);
-                window.location.href = "/principal/dashboard/";
-            } else {
-                alert(data.message);
-            }
-        };
+            // Toggle buttons
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'inline-flex';
+            submitBtn.disabled = false;
+        });
+
+        retakeBtn.addEventListener('click', () => {
+            // Reset UI
+            capturedImage.style.display = 'none';
+            video.style.display = 'block';
+            faceInput.value = '';
+
+            captureBtn.style.display = 'inline-flex';
+            retakeBtn.style.display = 'none';
+            submitBtn.disabled = true;
+        });
+
+        // Submit Form
+        function submitForm(event) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById('teacherForm'));
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+
+            fetch('{% url "add_teacher" %}', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    statusMessage.style.display = 'block';
+                    if (data.status === 'success') {
+                        statusMessage.style.background = '#dcfce7';
+                        statusMessage.style.color = '#15803d';
+                        statusMessage.innerText = data.message;
+                        setTimeout(() => window.location.href = '/principal/dashboard/', 2000);
+                    } else {
+                        statusMessage.style.background = '#fee2e2';
+                        statusMessage.style.color = '#b91c1c';
+                        statusMessage.innerText = data.message;
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = 'Complete Registration';
+                    }
+                })
+                .catch(error => {
+                    statusMessage.style.display = 'block';
+                    statusMessage.style.background = '#fee2e2';
+                    statusMessage.style.color = '#b91c1c';
+                    statusMessage.innerText = 'Server error occurred.';
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = 'Complete Registration';
+                });
+        }
     </script>
 </body>
 

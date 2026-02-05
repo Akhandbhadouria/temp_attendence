@@ -5,48 +5,459 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School Management System</title>
+    <title>Welcome - Face Recognition System</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            overflow-x: hidden;
+        }
+
+        .home-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            flex: 1;
+            background: #ffffff;
+            padding: 3rem 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-width: 600px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 3rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-section h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            color: #0f172a;
+            letter-spacing: -1px;
+        }
+
+        .hero-section p {
+            color: #64748b;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 3rem;
+            font-weight: 500;
+        }
+
+        .section-label {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #94a3b8;
+            margin-bottom: 1.25rem;
+            letter-spacing: 1.2px;
+        }
+
+        .role-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .role-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            background: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+            transform: scaleY(0);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .role-card:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+            transform: translateX(4px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
+        }
+
+        .role-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .role-card.secondary::before {
+            background: linear-gradient(180deg, #ec4899 0%, #db2777 100%);
+        }
+
+        .role-card.secondary:hover {
+            border-color: #ec4899;
+            box-shadow: 0 8px 24px rgba(236, 72, 153, 0.12);
+        }
+
+        .role-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .role-card:hover .role-icon {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .secondary-icon {
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+            color: #db2777;
+        }
+
+        .role-content h3 {
+            font-size: 1.15rem;
+            margin-bottom: 0.35rem;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .role-content p {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .arrow-icon {
+            margin-left: auto;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .role-card:hover .arrow-icon {
+            color: #3b82f6;
+            transform: translateX(4px);
+        }
+
+        .role-card.secondary:hover .arrow-icon {
+            color: #ec4899;
+        }
+
+        .register-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .register-link:hover {
+            color: #2563eb;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            flex: 1;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0.08;
+            background-image:
+                radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.3) 2%, transparent 0%),
+                radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.3) 2%, transparent 0%);
+            background-size: 60px 60px;
+        }
+
+        .visual-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+            padding: 2rem;
+        }
+
+        .main-icon-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 2.5rem;
+        }
+
+        .main-icon {
+            font-size: 9rem;
+            opacity: 0.95;
+            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.2));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        .icon-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.3;
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 0.15;
+            }
+        }
+
+        .visual-content h2 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.5px;
+        }
+
+        .visual-content p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .feature-badges {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 0.6rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .home-container {
+                flex-direction: column;
+            }
+
+            .left-panel {
+                max-width: 100%;
+                padding: 2rem;
+            }
+
+            .right-panel {
+                min-height: 400px;
+            }
+
+            .hero-section h1 {
+                font-size: 2.25rem;
+            }
+
+            .main-icon {
+                font-size: 6rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .hero-section h1 {
+                font-size: 1.875rem;
+            }
+
+            .visual-content h2 {
+                font-size: 1.75rem;
+            }
+
+            .role-icon {
+                width: 56px;
+                height: 56px;
+            }
+
+            .feature-badges {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>School Authentication Portal</h1>
-        <p class="subtitle">Please select your role to proceed</p>
-
-        <div class="cards-grid">
-            <!-- Principal Card -->
-            <div class="card">
-                <div class="icon-wrapper" style="color: #ec4899;">
-                    <i class="fas fa-user-tie"></i>
+    <div class="home-container">
+        <!-- Left Panel: Content -->
+        <div class="left-panel">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="fas fa-cube"></i>
                 </div>
-                <h2>Principal Portal</h2>
-                <p>Login to manage teachers, track attendance records, and create class timetables.</p>
-                <div class="action-buttons">
-                    <a href="{% url 'principal_login_view' %}" class="btn btn-primary">
-                        Principal Login <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+                <span class="logo-text">FaceAuth</span>
+            </div>
+
+            <div class="hero-section">
+                <h1>Smart Attendance System</h1>
+                <p>
+                    Secure, automated, and efficient attendance tracking for modern educational institutions using
+                    advanced face recognition technology.
+                </p>
+            </div>
+
+            <div>
+                <p class="section-label">Continue as</p>
+
+                <div class="role-cards">
+                    <a href="/principal/login/" class="role-card secondary">
+                        <div class="role-icon secondary-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="role-content">
+                            <h3>Principal / Admin</h3>
+                            <p>Manage school, teachers, and schedules</p>
+                        </div>
+                        <i class="fas fa-chevron-right arrow-icon"></i>
                     </a>
-                    <a href="{% url 'principal_register' %}" class="btn btn-secondary">
-                        <i class="fas fa-school"></i> Register New School
+
+                    <a href="/login/" class="role-card">
+                        <div class="role-icon">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="role-content">
+                            <h3>Faculty Staff</h3>
+                            <p>Mark attendance and view timetable</p>
+                        </div>
+                        <i class="fas fa-chevron-right arrow-icon"></i>
                     </a>
                 </div>
             </div>
 
-            <!-- Teacher Card -->
-            <div class="card">
-                <div class="icon-wrapper" style="color: #6366f1;">
-                    <i class="fas fa-chalkboard-teacher"></i>
+            <div>
+                <a href="/principal/register/" class="register-link">
+                    Don't have an organization account? Register here
+                    <i class="fas fa-arrow-right" style="font-size: 0.85rem;"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Right Panel: Visual -->
+        <div class="right-panel">
+            <div class="bg-pattern"></div>
+
+            <div class="visual-content">
+                <div class="main-icon-wrapper">
+                    <div class="icon-ring"></div>
+                    <i class="fas fa-user-shield main-icon"></i>
                 </div>
-                <h2>Teacher Portal</h2>
-                <p>Secure login for faculty. Use Face ID or credentials to access your dashboard.</p>
-                <div class="action-buttons">
-                    <a href="{% url 'login_user' %}" class="btn btn-primary">
-                        Face Login <i class="fas fa-camera" style="margin-left: 8px;"></i>
-                    </a>
-                    <a href="{% url 'teacher_login_password' %}" class="btn btn-secondary">
-                        Login via Password
-                    </a>
+
+                <h2>Secure Access</h2>
+                <p>Powered by AI Face Recognition</p>
+
+                <div class="feature-badges">
+                    <div class="badge">
+                        <i class="fas fa-lock"></i>
+                        <span>Encrypted</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-bolt"></i>
+                        <span>Real-time</span>
+                    </div>
+                    <div class="badge">
+                        <i class="fas fa-check-circle"></i>
+                        <span>99% Accurate</span>
+                    </div>
                 </div>
             </div>
         </div>
