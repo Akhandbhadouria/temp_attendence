@@ -16,6 +16,10 @@
         class="nav-item {% if request.resolver_match.url_name == 'mark_attendance' %}active{% endif %}">
         <i class="fas fa-camera"></i> Mark Attendance
     </a>
+    <a href="{% url 'teacher_help' %}"
+        class="nav-item {% if request.resolver_match.url_name == 'teacher_help' %}active{% endif %}">
+        <i class="fas fa-headset"></i> Help
+    </a>
 
     <div class="menu-label" style="margin-top: auto;">Account</div>
     <a href="/" class="nav-item" style="color: var(--danger);">

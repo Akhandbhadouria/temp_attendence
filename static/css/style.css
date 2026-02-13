@@ -28,6 +28,8 @@ body {
     background-color: var(--bg-color);
     color: var(--text-dark);
     min-height: 100vh;
+                background: linear-gradient(135deg, #fef9c3 0%, #fde047 100%);
+
 }
 
 /* Layout Classes */
