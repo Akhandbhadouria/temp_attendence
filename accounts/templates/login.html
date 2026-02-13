@@ -5,98 +5,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Face Login - FaceAuth</title>
+    <title>Face Login - ClassAudit AI</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <style>
-        .icon-wrapper {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-            color: #1e40af;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+        :root {
+            --primary: #1F2937;
+            /* Dark Grey */
+            --primary-dark: #111827;
+            --bg-left: #FFF9F0;
+            /* Cream */
+            --text-dark: #1F2937;
+            --text-light: #9CA3AF;
+            --white: #ffffff;
+            --input-bg: #F9FAFB;
+            --border: #E5E7EB;
+            --green: #4caf50;
+            --red: #ef5350;
         }
 
-        .camera-box {
-            background: #000;
-            border-radius: 16px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--white);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
             overflow: hidden;
+        }
+
+        /* Split Layout */
+        .split-container {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
             width: 100%;
-            height: 280px;
+            height: 100vh;
+        }
+
+        /* Left Side - Visual (No Image) */
+        .visual-side {
+            background: var(--bg-left);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 2rem;
+        }
+
+        .visual-content {
+            text-align: center;
+            z-index: 2;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .hero-img {
+            max-width: 85%;
+            height: auto;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .visual-icon {
+            display: none;
+        }
+
+        /* Hide old icon if present */
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        .floating-badge {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.8rem 1.5rem;
+            border-radius: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: badgeFloat 4s ease-in-out infinite;
+        }
+
+        .fb-1 {
+            top: 25%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+
+        .fb-2 {
+            bottom: 25%;
+            right: 20%;
+            animation-delay: -2s;
+        }
+
+        .fb-3 {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: none;
+            z-index: 2;
+            font-size: 1.2rem;
+            padding: 1.5rem 2.5rem;
+            border-radius: 24px;
+        }
+
+        @keyframes badgeFloat {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Right Side - Form */
+        .form-side {
+            background: var(--white);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 1.5rem 0;
-            border: 3px solid var(--border-color);
+            padding: 2rem;
+            position: relative;
+            overflow-y: auto;
         }
 
-        #video {
+        .form-container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            text-decoration: none;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        p.subtitle {
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        /* Form Elements */
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 24px;
+            border-radius: 99px;
+            border: 2px solid var(--border);
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            background: var(--white);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(31, 41, 55, 0.1);
+        }
+
+        /* Camera Box */
+        .camera-wrapper {
+            position: relative;
+            background: #000;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 4px solid var(--border);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            aspect-ratio: 4/3;
+        }
+
+        video,
+        canvas {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transform: scaleX(-1);
         }
+
+        .scan-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            margin: 10px;
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+            top: 50%;
+            animation: scan 2s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 10%;
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 90%;
+                opacity: 0;
+            }
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            border-radius: 99px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            background: var(--primary);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(31, 41, 55, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 14px;
+            border-radius: 99px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            background: white;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary);
+            background: #F9FAFB;
+        }
+
+        /* Status */
+        .status-box {
+            padding: 1rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: none;
+            text-align: left;
+        }
+
+        .status-success {
+            background: #e8f5e9;
+            color: var(--green);
+        }
+
+        .status-error {
+            background: #ffebee;
+            color: var(--red);
+        }
+
+        .footer-text {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .footer-text a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        @media (max-width: 960px) {
+            .split-container {
+                grid-template-columns: 1fr;
+            }
+
+            .visual-side {
+                display: none;
+            }
+
+            .form-side {
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 
 <body>
-    <div class="auth-container fade-in">
-        <div class="auth-card" style="max-width: 520px;">
-            <div style="margin-bottom: 2rem;">
-                <div class="icon-wrapper">
-                    <i class="fas fa-user-shield"></i>
-                </div>
-                <h1 style="font-size: 2rem; margin-bottom: 0.75rem; font-weight: 800; letter-spacing: -0.5px;">Face
-                    Recognition Login</h1>
-                <p style="color: var(--text-light); font-size: 1rem; font-weight: 500;">Secure access with facial
-                    authentication</p>
+    <div class="split-container">
+        <!-- Visual Side -->
+        <div class="visual-side">
+            <div class="floating-badge fb-1"><i class="fas fa-fingerprint"></i> Biometric Auth</div>
+            <div class="floating-badge fb-2"><i class="fas fa-shield-alt"></i> Secure Login</div>
+
+            <div class="visual-content">
+                <img src="{% static 'img/teacher_login_hero.png' %}" alt="Face Login" class="hero-img">
             </div>
+        </div>
 
-            <form id="loginForm" onsubmit="submitLogin(event)">
-                <div style="text-align: left;">
-                    <label
-                        style="display: block; margin-bottom: 0.75rem; font-size: 0.9rem; font-weight: 700; color: var(--text-dark);">Username</label>
-                    <input type="text" id="username" name="username" class="input-field" required
-                        placeholder="Enter your username" autofocus>
-                </div>
+        <!-- Form Side -->
+        <div class="form-side">
+            <div class="form-container">
+                <a href="/" class="brand-logo"><i class="fas fa-cube"></i> ClassAudit AI</a>
+                <h1>Face Login</h1>
+                <p class="subtitle">Position your face within the frame.</p>
 
-                <div class="camera-box">
-                    <video id="video" autoplay playsinline></video>
-                    <canvas id="canvas" style="display: none;"></canvas>
-                </div>
+                <form id="loginForm" onsubmit="submitLogin(event)">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <label
+                            style="display: block; margin-bottom: 0.5rem; font-weight: 700; font-size: 0.85rem; padding-left: 10px;">Username</label>
+                        <input type="text" id="username" class="input-field" placeholder="Enter username" required
+                            autofocus>
+                    </div>
 
-                <div id="statusMessage"
-                    style="padding: 1rem; border-radius: 14px; display: none; font-size: 0.9rem; margin-bottom: 1rem; font-weight: 600;">
-                </div>
+                    <div class="camera-wrapper">
+                        <video id="video" autoplay playsinline></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                    </div>
 
-                <div style="display: flex; gap: 12px;">
-                    <button type="button" id="captureBtn" class="btn btn-secondary" style="flex: 1; padding: 1rem;">
+                    <div id="statusMessage" class="status-box"></div>
+
+                    <button type="button" id="captureBtn" class="btn-secondary">
                         <i class="fas fa-camera"></i> Capture Face
                     </button>
-                    <button type="submit" id="submitBtn" class="btn btn-primary" style="flex: 1; padding: 1rem;"
-                        disabled>
-                        <i class="fas fa-sign-in-alt"></i> Login
+                    <button type="submit" id="submitBtn" class="btn-primary" disabled>
+                        Sign in
                     </button>
-                </div>
-            </form>
+                </form>
 
-            <div
-                style="margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--border-color); text-align: center;">
-                <a href="/"
-                    style="color: var(--text-light); text-decoration: none; font-size: 0.9rem; font-weight: 600;">
-                    <i class="fas fa-arrow-left"></i> Back to Home
-                </a>
-                <span style="margin: 0 1rem; color: var(--border-color);">•</span>
-                <a href="/teacher/login-password/"
-                    style="color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 700;">
-                    Login with Password
-                </a>
+                <div class="footer-text">
+                    <a href="/teacher/login-password/">Use Password instead</a>
+                </div>
             </div>
         </div>
     </div>
@@ -106,85 +416,59 @@
         const canvas = document.getElementById('canvas');
         const captureBtn = document.getElementById('captureBtn');
         const submitBtn = document.getElementById('submitBtn');
-        const statusMessage = document.getElementById('statusMessage');
+        const statusMsg = document.getElementById('statusMessage');
         let capturedImage = null;
 
-        // Access camera
+        // Start Camera
         navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-            })
-            .catch(err => {
-                console.error('Error accessing camera:', err);
-                statusMessage.style.display = 'block';
-                statusMessage.style.background = '#fee2e2';
-                statusMessage.style.color = '#b91c1c';
-                statusMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> Camera access denied. Please allow permission.';
-            });
+            .then(stream => video.srcObject = stream)
+            .catch(err => showStatus('Camera access denied.', 'error'));
 
         captureBtn.addEventListener('click', () => {
-            const context = canvas.getContext('2d');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
+            canvas.getContext('2d').drawImage(video, 0, 0);
             capturedImage = canvas.toDataURL('image/jpeg');
 
-            statusMessage.style.display = 'block';
-            statusMessage.style.background = '#dcfce7';
-            statusMessage.style.color = '#15803d';
-            statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> Face captured successfully! Ready to login.';
-
+            showStatus('Face captured!', 'success');
             submitBtn.disabled = false;
             captureBtn.innerHTML = '<i class="fas fa-redo"></i> Retake';
         });
 
-        function submitLogin(event) {
-            event.preventDefault();
+        function showStatus(msg, type) {
+            statusMsg.style.display = 'block';
+            statusMsg.className = 'status-box ' + (type === 'success' ? 'status-success' : 'status-error');
+            statusMsg.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i> ` + msg;
+        }
 
-            if (!capturedImage) {
-                statusMessage.style.display = 'block';
-                statusMessage.style.background = '#fee2e2';
-                statusMessage.style.color = '#b91c1c';
-                statusMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please capture your face first.';
-                return;
-            }
+        function submitLogin(e) {
+            e.preventDefault();
+            if (!capturedImage) return showStatus('Please capture face first.', 'error');
 
             const formData = new FormData();
             formData.append('username', document.getElementById('username').value);
             formData.append('face_image', capturedImage);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
 
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
 
-            fetch('/login/', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
+            fetch('/login/', { method: 'POST', body: formData })
+                .then(r => r.json())
                 .then(data => {
-                    statusMessage.style.display = 'block';
                     if (data.status === 'success') {
-                        statusMessage.style.background = '#dcfce7';
-                        statusMessage.style.color = '#15803d';
-                        statusMessage.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
-                        setTimeout(() => window.location.href = data.redirect, 1500);
+                        showStatus(data.message, 'success');
+                        setTimeout(() => window.location.href = data.redirect, 1000);
                     } else {
-                        statusMessage.style.background = '#fee2e2';
-                        statusMessage.style.color = '#b91c1c';
-                        statusMessage.innerHTML = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Login failed.');
+                        showStatus(data.message || 'Login failed', 'error');
                         submitBtn.disabled = false;
-                        submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                        submitBtn.innerHTML = 'Sign in';
                     }
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    statusMessage.style.display = 'block';
-                    statusMessage.style.background = '#fee2e2';
-                    statusMessage.style.color = '#b91c1c';
-                    statusMessage.innerText = 'An error occurred. Please try again.';
+                .catch(err => {
+                    console.error(err);
+                    showStatus('Server connection failed', 'error');
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
                 });
         }
     </script>

@@ -6,9 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Performance Analysis - Principal Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
-        rel="stylesheet">
+        
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -25,6 +25,26 @@
             position: relative;
             height: 350px;
             width: 100%;
+        }
+         h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .page-header h1,
+        .stat-content h3,
+        .faculty-header h2,
+        .filter-header h3,
+        .card-header h2,
+        .dept-section-title,
+        .empty-state h3 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800;
+        }
+
+        .page-header h1 {
+            font-weight: 900;
         }
 
         .full-width {
@@ -128,7 +148,6 @@
         <div class="page-header">
             <div>
                 <h1>Institutional Analysis</h1>
-                <p>Visualizing performance metrics across departments and faculty.</p>
             </div>
             <div class="date-badge">
                 <i class="far fa-calendar"></i>
