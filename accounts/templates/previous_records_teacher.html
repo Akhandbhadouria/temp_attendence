@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Previous Records - {{ teacher.name }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/teacher_theme.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    {% include 'sidebar_teacher.html' %}
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Left Section -->
+        <div class="left-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div>
+                    <h1 style="font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700;">Previous Records</h1>
+                    <p style="color: var(--text-light);">View your past class sessions and attendance history</p>
+                </div>
+            </div>
+
+            <!-- Lessons Section -->
+            <div class="lessons-section">
+                <div class="section-header">
+                    <h3>Class History</h3>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <form method="get" action="" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="date" name="date" value="{{ date_filter }}" onchange="this.form.submit()"
+                                style="padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; color: var(--text-dark); outline: none;">
+                            {% if date_filter %}
+                            <a href="." style="color: #ef5350; font-size: 0.85rem; text-decoration: none;"><i
+                                    class="fas fa-times"></i> Clear</a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+                {% if class_history %}
+                <table class="lessons-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Subject</th>
+                            <th>Session Time</th>
+                            <th>Active Duration</th>
+                            <th>Logins</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in class_history %}
+                        <tr>
+                            <td style="font-weight: 600;">{{ session.start_time|date:"M d, Y" }}</td>
+                            <td><span class="badge badge-blue">{{session.timetable.subject|default:"ExtraClass"}}</span>
+                            </td>
+                            <td style="color: var(--text-light);">{{ session.start_time|time:"h:i A" }}
+                                -{{session.end_time|time:"h:i A" }}</td>
+                            <td style="font-weight: 700; color: #4caf50;">{{ session.total_active_duration }}</td>
+                            <td style="color: var(--text-light);">{{ session.monitoring_resumption_count }}</td>
+                            <td><span class="status-badge status-done">Completed</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>No class sessions recorded yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Section -->
+        <div class="right-section">
+            <!-- User Profile Card -->
+            <div class="user-profile-card">
+                <div class="user-avatar">
+                    <img src="https://ui-avatars.com/api/?name={{ teacher.name }}&background=7b92d4&color=fff&size=120&font-size=0.45"
+                        alt="{{ teacher.name }}">
+                </div>
+                <h3>{{ teacher.name }}</h3>
+                <p class="role-tag">Teacher</p>
+                <a href="{% url 'teacher_profile' %}" class="btn-profile"
+                    style="text-decoration: none; display: inline-block;">View Profile</a>
+            </div>
+
+            <!-- Calendar -->
+            <div class="calendar-card">
+                <div class="calendar-header">
+                    <h3>{% now "F Y" %}</h3>
+                    <div class="calendar-nav">
+                        <button><i class="fas fa-chevron-left"></i></button>
+                        <button><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-day-label">Mon</div>
+                    <div class="calendar-day-label">Tue</div>
+                    <div class="calendar-day-label">Wed</div>
+                    <div class="calendar-day-label">Thu</div>
+                    <div class="calendar-day-label">Fri</div>
+                    <div class="calendar-day-label">Sat</div>
+                    <div class="calendar-day-label">Sun</div>
+
+                    <!-- Sample calendar days - you can make this dynamic with Django -->
+                    <div class="calendar-day inactive">27</div>
+                    <div class="calendar-day inactive">28</div>
+                    <div class="calendar-day active">29</div>
+                    <div class="calendar-day inactive">30</div>
+                    <div class="calendar-day">1</div>
+                    <div class="calendar-day">2</div>
+                    <div class="calendar-day">3</div>
+                    <div class="calendar-day">4</div>
+                    <div class="calendar-day">5</div>
+                    <div class="calendar-day">6</div>
+                    <div class="calendar-day today">7</div>
+                    <div class="calendar-day">8</div>
+                    <div class="calendar-day">9</div>
+                    <div class="calendar-day">10</div>
+                    <div class="calendar-day">11</div>
+                    <div class="calendar-day">12</div>
+                    <div class="calendar-day">13</div>
+                    <div class="calendar-day">14</div>
+                    <div class="calendar-day">15</div>
+                    <div class="calendar-day">16</div>
+                    <div class="calendar-day">17</div>
+                    <div class="calendar-day">18</div>
+                    <div class="calendar-day active">19</div>
+                    <div class="calendar-day">20</div>
+                    <div class="calendar-day">21</div>
+                    <div class="calendar-day">22</div>
+                    <div class="calendar-day">23</div>
+                    <div class="calendar-day">24</div>
+                    <div class="calendar-day">25</div>
+                    <div class="calendar-day">26</div>
+                    <div class="calendar-day">27</div>
+                    <div class="calendar-day active">29</div>
+                    <div class="calendar-day">30</div>
+                    <div class="calendar-day">31</div>
+                </div>
+            </div>
+
+            <!-- Help Widget -->
+            <a href="{% url 'teacher_help' %}" style="text-decoration: none; color: inherit;">
+                <div class="help-widget">
+                    <div class="help-illustration">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>Need help?</h3>
+                    <p>Do you have any problem while using the platform?</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

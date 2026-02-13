@@ -9,454 +9,283 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/teacher_theme.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --bg-color: #f3f4f6;
-            --sidebar-width: 260px;
-            --primary-blue: #3b82f6;
-            --text-dark: #1e293b;
-            --text-light: #64748b;
-            --white: #ffffff;
-            --border-color: #e2e8f0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            display: flex;
-            min-height: 100vh;
-            color: var(--text-dark);
-        }
-
-        /* Sidebar styles are now inherited from style.css, but we keep custom page styles below */
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 2rem 3rem;
-        }
-
-        /* ... existing unique styles ... */
-
-        /* Header */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .search-bar {
-            background: var(--white);
-            padding: 10px 20px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 400px;
-            border: 1px solid transparent;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .search-bar input {
-            border: none;
-            outline: none;
-            width: 100%;
-            font-size: 0.95rem;
-        }
-
-        .user-actions {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .icon-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--white);
-            color: var(--text-light);
-            cursor: pointer;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Profile Top Section */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .download-btn {
-            background: var(--primary-blue);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .profile-card {
-            background: var(--white);
-            border-radius: 20px;
-            padding: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 3rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
-        }
-
-        .profile-pic {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #f8fafc;
-        }
-
-        .profile-main-info h2 {
-            font-size: 1.8rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .profile-details-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 3rem;
-            margin-top: 1rem;
-        }
-
-        .detail-item label {
-            display: block;
-            font-size: 0.8rem;
-            color: var(--text-light);
-            margin-bottom: 4px;
-        }
-
-        .detail-item p {
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        /* Stats Row */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .stat-card:nth-child(1) .stat-icon {
-            background: #e0f2fe;
-            color: #0ea5e9;
-        }
-
-        .stat-card:nth-child(2) .stat-icon {
-            background: #dcfce7;
-            color: #22c55e;
-        }
-
-        .stat-card:nth-child(3) .stat-icon {
-            background: #fef9c3;
-            color: #eab308;
-        }
-
-        .stat-card:nth-child(4) .stat-icon {
-            background: #fee2e2;
-            color: #ef4444;
-        }
-
-        .stat-info h3 {
-            font-size: 1.4rem;
-            font-weight: 700;
-        }
-
-        .stat-info p {
-            font-size: 0.85rem;
-            color: var(--text-light);
-        }
-
-        /* Bottom Section */
-        .bottom-grid {
-            display: grid;
-            grid-template-columns: 2fr 3fr;
-            gap: 1.5rem;
-        }
-
-        .chart-card {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-        }
-
-        .att-rate {
-            font-size: 3.5rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin: 1.5rem 0;
-        }
-
-        .badge-year {
-            background: #e0f2fe;
-            color: #0ea5e9;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        /* Mock Bars */
-        .bars-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            height: 200px;
-            padding-top: 2rem;
-        }
-
-        .bar-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            width: 20%;
-        }
-
-        .bar {
-            width: 100%;
-            border-radius: 12px 12px 4px 4px;
-            transition: height 0.5s ease;
-        }
-
-        .bg-blue {
-            background-color: #3b82f6;
-        }
-
-        .bg-green {
-            background-color: #84cc16;
-        }
-
-        .bg-yellow {
-            background-color: #fca5a5;
-        }
-
-        /* Based on image, third is yellowish/orange, actually wait. Image has Blue, Green, Cream/Yellow, Red */
-        .bg-actual-yellow {
-            background-color: #fcd34d;
-        }
-
-        .bg-red {
-            background-color: #ef4444;
-        }
-
-        .bar-label {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            text-align: center;
-        }
-    </style>
 </head>
 
 <body>
-    <!-- Sidebar -->
     <!-- Sidebar -->
     {% include 'sidebar_teacher.html' %}
 
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Top Bar -->
+        <!-- Left Section -->
+        <div class="left-section">
+            <!-- Search Bar -->
 
 
-        <!-- Section Header -->
+            <!-- Welcome Banner -->
 
-        <!-- Detail Card -->
-        <div class="profile-card">
-            <div class="profile-pic"
-                style="background: #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                <img src="https://ui-avatars.com/api/?name={{ teacher.name }}&background=3b82f6&color=fff&size=128&font-size=0.5"
-                    alt="{{ teacher.name }} Avatar" style="width: 100%; height: 100%; object-fit: cover;">
+
+            <!-- Classes Section (Replacing Profile Card) -->
+            <div class="section-header-row"
+                style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: #334155;">Classes</h2>
+
             </div>
 
-            <div class="profile-main-info" style="flex: 1;">
-                <h2>{{ teacher.name }}</h2>
-                <p style="color: var(--text-light); margin-bottom: 1.5rem;">Senior Faculty Member</p>
+            <div class="classes-grid">
+                {% if today_classes %}
+                {% for cls in today_classes %}
+                <!-- Cycle gradients -->
+                <div class="class-card {% cycle 'card-gradient-blue' 'card-gradient-purple' 'card-gradient-pink' %}">
+                    <h4>{{ cls.subject }}</h4>
 
-                <div class="profile-details-grid">
-                    <div class="detail-item">
-                        <label>ID</label>
-                        <p>ID: {{ teacher.user.id|stringformat:"04d" }}</p>
+                    <!-- Mock Avatars (simulating students) -->
+                    <div class="class-avatars">
+                        <img src="https://ui-avatars.com/api/?background=random&color=fff&name=S1&size=64" alt="">
+                        <img src="https://ui-avatars.com/api/?background=random&color=fff&name=S2&size=64" alt="">
+                        <img src="https://ui-avatars.com/api/?background=random&color=fff&name=S3&size=64" alt="">
+                        <div class="more-count">+{{ forloop.counter|add:15 }}</div>
                     </div>
-                    <div class="detail-item">
-                        <label>Username</label>
-                        <p>{{ teacher.user.username }}</p>
-                    </div>
-                    <div class="detail-item">
-                        <label>Email</label>
-                        <p>{{ teacher.user.Principal }}</p>
-                    </div>
-                    <div class="detail-item">
-                        <label>School</label>
-                        <p>{{ teacher.principal.school_name }}</p>
+
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <i class="far fa-clock" style="width: 16px;"></i> {{ cls.start_time|time:"h:i A" }} -
+                            {{cls.end_time|time:"h:i A" }}
+                        </div>
+                        <a href="{% url 'start_class' cls.id %}"
+                            style="margin-top: 8px; background: rgba(255,255,255,0.25); text-align: center; padding: 8px 0; border-radius: 12px; color: white; text-decoration: none; font-weight: 600; display: block; transition: background 0.2s; backdrop-filter: blur(4px);">
+                            Start Class <i class="fas fa-play" style="font-size: 0.7rem; margin-left: 6px;"></i>
+                        </a>
                     </div>
                 </div>
+                {% endfor %}
+                {% else %}
+                <div
+                    style="grid-column: 1 / -1; background: white; padding: 3rem; border-radius: 20px; text-align: center; box-shadow: var(--shadow-sm); color: var(--text-light);">
+                    <i class="fas fa-mug-hot" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>No classes scheduled for today.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-user-check"></i></div>
+                    <div class="stat-info">
+                        <h3>{{ total_present }}</h3>
+                        <p>Total Present</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <h3>{{ late_attendance }}</h3>
+                        <p>Late Arrival</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-history"></i></div>
+                    <div class="stat-info">
+                        <h3>{{ undertime }}</h3>
+                        <p>Undertime</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-user-times"></i></div>
+                    <div class="stat-info">
+                        <h3>{{ total_absent }}</h3>
+                        <p>Total Absent</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem;">
+                <div class="chart-card">
+                    <h3>Attendance Rate</h3>
+                    <span class="badge badge-blue">This Month</span>
+                    <div style="height: 200px; position: relative; margin-top: 1.5rem;">
+                        <canvas id="attendanceRateChart"></canvas>
+                        <div
+                            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.8rem; font-weight: 700; color: #3d4e6c;">
+                            {{ attendance_rate }}%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Summary - {{ teacher.name }}</h3>
+                    <div style="height: 250px; margin-top: 1rem;">
+                        <canvas id="summaryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lessons Section -->
+            <div class="lessons-section">
+                <div class="section-header">
+                    <h3>Class Session Reports</h3>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <form method="get" action="" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="date" name="date" value="{{ date_filter }}" onchange="this.form.submit()"
+                                style="padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.9rem; color: var(--text-dark); outline: none;">
+                            {% if date_filter %}
+                            <a href="." style="color: #ef5350; font-size: 0.85rem; text-decoration: none;"><i
+                                    class="fas fa-times"></i> Clear</a>
+                            {% endif %}
+                        </form>
+
+                    </div>
+                </div>
+
+                {% if class_history %}
+                <table class="lessons-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Subject</th>
+                            <th>Session Time</th>
+                            <th>Active Duration</th>
+                            <th>Logins</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in class_history %}
+                        <tr>
+                            <td style="font-weight: 600;">{{ session.start_time|date:"M d, Y" }}</td>
+                            <td><span class="badge badge-blue">{{session.timetable.subject|default:"ExtraClass"}}</span>
+                            </td>
+                            <td style="color: var(--text-light);">{{ session.start_time|time:"h:i A" }}
+                                -{{session.end_time|time:"h:i A" }}</td>
+                            <td style="font-weight: 700; color: #4caf50;">{{ session.total_active_duration }}</td>
+                            <td style="color: var(--text-light);">{{ session.monitoring_resumption_count }}</td>
+                            <td><span class="status-badge status-done">Completed</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>No class sessions recorded yet</p>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #e0f2fe; color: #0ea5e9;"><i class="fas fa-user-check"></i>
+        <!-- Right Section -->
+        <div class="right-section">
+            <!-- User Profile Card -->
+            <div class="user-profile-card">
+                <div class="user-avatar">
+                    <img src="https://ui-avatars.com/api/?name={{ teacher.name }}&background=7b92d4&color=fff&size=120&font-size=0.45"
+                        alt="{{ teacher.name }}">
                 </div>
-                <div class="stat-info">
-                    <h3>{{ total_present }} Days</h3>
-                    <p>Total Present</p>
-                </div>
+                <h3>{{ teacher.name }}</h3>
+                <p class="role-tag">Teacher</p>
+                <button class="btn-profile">View Profile</button>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #dcfce7; color: #22c55e;"><i class="fas fa-clock"></i></div>
-                <div class="stat-info">
-                    <h3>{{ late_attendance }} Days</h3>
-                    <p>Late Arrival</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #fef9c3; color: #eab308;"><i class="fas fa-history"></i></div>
-                <div class="stat-info">
-                    <h3>{{ undertime }} Days</h3>
-                    <p>Undertime</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon" style="background: #fee2e2; color: #ef4444;"><i class="fas fa-user-times"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>{{ total_absent }} Days</h3>
-                    <p>Total Absent</p>
-                </div>
-            </div>
-        </div>
 
-        <!-- Bottom Grid: Attendance Rate & Summary -->
-        <div class="bottom-grid">
-            <div class="chart-card">
-                <h3 style="margin-bottom: 2rem;">Attendance Rate</h3>
-                <span class="badge-year">This Month</span>
-                <div style="height: 200px; position: relative; margin-top: 1rem; margin-bottom: 2rem;">
-                    <canvas id="attendanceRateChart"></canvas>
-                    <div
-                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 700; color: #1e293b;">
-                        {{ attendance_rate }}%
+            <!-- Calendar -->
+            <div class="calendar-card">
+                <div class="calendar-header">
+                    <h3>{% now "F Y" %}</h3>
+                    <div class="calendar-nav">
+                        <button><i class="fas fa-chevron-left"></i></button>
+                        <button><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="calendar-grid">
+                    <div class="calendar-day-label">Mon</div>
+                    <div class="calendar-day-label">Tue</div>
+                    <div class="calendar-day-label">Wed</div>
+                    <div class="calendar-day-label">Thu</div>
+                    <div class="calendar-day-label">Fri</div>
+                    <div class="calendar-day-label">Sat</div>
+                    <div class="calendar-day-label">Sun</div>
+
+                    <!-- Sample calendar days - you can make this dynamic with Django -->
+                    <div class="calendar-day inactive">27</div>
+                    <div class="calendar-day inactive">28</div>
+                    <div class="calendar-day active">29</div>
+                    <div class="calendar-day inactive">30</div>
+                    <div class="calendar-day">1</div>
+                    <div class="calendar-day">2</div>
+                    <div class="calendar-day">3</div>
+                    <div class="calendar-day">4</div>
+                    <div class="calendar-day">5</div>
+                    <div class="calendar-day">6</div>
+                    <div class="calendar-day today">7</div>
+                    <div class="calendar-day">8</div>
+                    <div class="calendar-day">9</div>
+                    <div class="calendar-day">10</div>
+                    <div class="calendar-day">11</div>
+                    <div class="calendar-day">12</div>
+                    <div class="calendar-day">13</div>
+                    <div class="calendar-day">14</div>
+                    <div class="calendar-day">15</div>
+                    <div class="calendar-day">16</div>
+                    <div class="calendar-day">17</div>
+                    <div class="calendar-day">18</div>
+                    <div class="calendar-day active">19</div>
+                    <div class="calendar-day">20</div>
+                    <div class="calendar-day">21</div>
+                    <div class="calendar-day">22</div>
+                    <div class="calendar-day">23</div>
+                    <div class="calendar-day">24</div>
+                    <div class="calendar-day">25</div>
+                    <div class="calendar-day">26</div>
+                    <div class="calendar-day">27</div>
+                    <div class="calendar-day active">29</div>
+                    <div class="calendar-day">30</div>
+                    <div class="calendar-day">31</div>
+                </div>
+            </div>
+
+            <!-- Reminders -->
+            <div class="reminders-card">
+                <h3>Reminders</h3>
+                <div class="reminder-item">
+                    <div class="reminder-icon"><i class="fas fa-bell"></i></div>
+                    <div class="reminder-content">
+                        <h4>Class - Assessment Review</h4>
+                        <p>{% now "d M Y, l" %}</p>
+                    </div>
+                </div>
+                <div class="reminder-item">
+                    <div class="reminder-icon"><i class="fas fa-bell"></i></div>
+                    <div class="reminder-content">
+                        <h4>Staff Meeting</h4>
+                        <p>{% now "d M Y, l" %}</p>
+                    </div>
+                </div>
+                <div class="reminder-item">
+                    <div class="reminder-icon"><i class="fas fa-bell"></i></div>
+                    <div class="reminder-content">
+                        <h4>Attendance Report Due</h4>
+                        <p>{% now "d M Y, l" %}</p>
                     </div>
                 </div>
             </div>
 
-            <div class="chart-card">
-                <h3>Summary - {{ teacher.name }}</h3>
-                <div style="height: 250px; margin-top: 2rem;">
-                    <canvas id="summaryChart"></canvas>
+            <!-- Help Widget -->
+            <a href="{% url 'teacher_help' %}" style="text-decoration: none; color: inherit;">
+                <div class="help-widget">
+                    <div class="help-illustration">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>Need help?</h3>
+                    <p>Do you have any problem while using the platform?</p>
                 </div>
-            </div>
-        </div>
-
-        <!-- Class Report History -->
-        <div class="card" style="margin-top: 2rem;">
-            <div class="section-header" style="margin-bottom: 1.5rem;">
-                <h2>Class Session Reports</h2>
-                <span class="badge" style="background: #f1f5f9; color: var(--text-light);">Recent Sessions</span>
-            </div>
-
-            {% if class_history %}
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #f1f5f9;">
-                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Date
-                        </th>
-                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Subject
-                        </th>
-                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Session
-                            Time</th>
-                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Active
-                            Duration</th>
-                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Logins
-                        </th>
-                        <th style="text-align: left; padding: 1rem; color: var(--text-light); font-weight: 600;">Status
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for session in class_history %}
-                    <tr style="border-bottom: 1px solid #f1f5f9;">
-                        <td style="padding: 1rem; color: var(--text-dark); font-weight: 500;">
-                            {{ session.start_time|date:"M d, Y" }}
-                        </td>
-                        <td style="padding: 1rem;">
-                            <span class="badge badge-blue">{{ session.timetable.subject|default:"Extra Class" }}</span>
-                        </td>
-                        <td style="padding: 1rem; color: var(--text-light);">
-                            {{ session.start_time|time:"h:i A" }} - {{ session.end_time|time:"h:i A" }}
-                        </td>
-                        <td style="padding: 1rem;">
-                            <span style="color: var(--success); font-weight: 700;">
-                                {{ session.total_active_duration }}
-                            </span>
-                        </td>
-                        <td style="padding: 1rem; color: var(--text-light);">
-                            {{ session.monitoring_resumption_count }}
-                        </td>
-                        <td style="padding: 1rem;">
-                            <span class="badge" style="background: #dcfce7; color: var(--success);">Completed</span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div style="text-align: center; padding: 3rem; color: var(--text-light);">
-                <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-            </div>
-            {% endif %}
+            </a>
         </div>
     </div>
+
     <script>
         // Attendance Rate Doughnut Chart
         const ctxRate = document.getElementById('attendanceRateChart').getContext('2d');
@@ -465,10 +294,10 @@
         new Chart(ctxRate, {
             type: 'doughnut',
             data: {
-                labels: ['Present (%)', 'Absent/Late (%)'],
+                labels: ['Present', 'Absent'],
                 datasets: [{
                     data: [attendanceRate, 100 - attendanceRate],
-                    backgroundColor: ['#3b82f6', '#f1f5f9'],
+                    backgroundColor: ['#7b92d4', '#f1f5f9'],
                     borderWidth: 0,
                     hoverOffset: 4
                 }]
@@ -493,15 +322,10 @@
                 datasets: [{
                     label: 'Days',
                     data: [{{ total_present }}, {{ late_attendance }}, {{ undertime }}, {{ total_absent }}],
-            backgroundColor: [
-            '#3b82f6', // Blue for Present
-            '#22c55e', // Green for Late (using Green as per original UI intent, though semantically weird, consistent with badges)
-            '#f59e0b', // Yellow/Orange for Undertime
-            '#ef4444'  // Red for Absent
-        ],
-            borderRadius: 8,
+            backgroundColor: ['#7b92d4', '#4caf50', '#f59e0b', '#ef5350'],
+            borderRadius: 12,
             borderSkipped: false,
-            barPercentage: 0.6,
+            barPercentage: 0.7,
             categoryPercentage: 0.8
                 }]
             },
@@ -515,13 +339,23 @@
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: '#e2e8f0',
+                        color: '#f1f5f9',
                         borderDash: [5, 5]
                     },
-                    ticks: { stepSize: 1 }
+                    ticks: {
+                        stepSize: 1,
+                        color: '#9ca6b8',
+                        font: { size: 11 }
+                    },
+                    border: { display: false }
                 },
                 x: {
-                    grid: { display: false }
+                    grid: { display: false },
+                    ticks: {
+                        color: '#9ca6b8',
+                        font: { size: 11 }
+                    },
+                    border: { display: false }
                 }
             }
         }

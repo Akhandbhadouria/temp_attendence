@@ -1,7 +1,7 @@
 import face_recognition
 import base64
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.core.files.base import ContentFile
 from .models import UserImages, User, Principal, Teacher, Timetable, TeacherAttendance, ClassSession
 from django.utils import timezone
@@ -259,7 +259,26 @@ def login_user(request):
 def teacher_dashboard(request):
     try:
         teacher = request.user.teacher
-        timetable = teacher.timetables.all().order_by('day', 'start_time')
+        timetable = teacher.timetables.all().order_by('start_time')
+        
+        # Group by day for the dashboard view
+        from collections import defaultdict
+        
+        # Order of days for display
+        day_order = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+        day_mapping = dict(Timetable.DAYS_OF_WEEK)
+        
+        # Bucket slots by day code
+        temp_schedule = defaultdict(list)
+        for slot in timetable:
+            temp_schedule[slot.day].append(slot)
+            
+        # Create ordered dictionary with full day names
+        grouped_schedule = {}
+        for code in day_order:
+            if code in temp_schedule:
+                full_name = day_mapping.get(code, code)
+                grouped_schedule[full_name] = temp_schedule[code]
         
         # Check for any ongoing sessions
         active_session = ClassSession.objects.filter(teacher=teacher, status='Ongoing').first()
@@ -267,6 +286,7 @@ def teacher_dashboard(request):
         return render(request, 'teacher_dashboard.html', {
             'teacher': teacher, 
             'timetable': timetable,
+            'grouped_schedule': grouped_schedule,
             'active_session': active_session
         })
     except Exception as e:
@@ -388,6 +408,14 @@ def teacher_profile(request):
 
         # 5. Class History (Completed Sessions)
         class_history = ClassSession.objects.filter(teacher=teacher, status='Completed').order_by('-start_time')
+        
+        date_filter = request.GET.get('date')
+        if date_filter:
+            class_history = class_history.filter(start_time__date=date_filter)
+
+        # 6. Today's Classes
+        today_str = day_map[now.weekday()]
+        today_classes = teacher.timetables.filter(day=today_str).order_by('start_time')
 
         context = {
             'teacher': teacher, 
@@ -397,14 +425,32 @@ def teacher_profile(request):
             'total_absent': total_absent,
             'undertime': 0, # Placeholder
             'attendance_rate': attendance_rate,
-            'class_history': class_history
+            'class_history': class_history,
+            'today_classes': today_classes,
+            'date_filter': date_filter
         }
 
         return render(request, 'teacher_profile.html', context)
     except Exception as e:
         print(e)
         return redirect('home')
+
+@login_required
+def previous_records_teacher(request):
+    try:
+        teacher = request.user.teacher
+        # All completed sessions
+        all_sessions = ClassSession.objects.filter(teacher=teacher, status='Completed').order_by('-start_time')
+        
+        context = {
+            'teacher': teacher,
+            'sessions': all_sessions
+        }
+        return render(request, 'previous_records_teacher.html', context)
+    except:
+        return redirect('home')
 @csrf_exempt
+
 @login_required
 def mark_attendance(request):
     if request.method == 'POST':
@@ -797,7 +843,8 @@ def principal_analysis(request):
                     start = datetime.datetime.combine(datetime.date.today(), session.timetable.start_time)
                     end = datetime.datetime.combine(datetime.date.today(), session.timetable.end_time)
                     total_scheduled_minutes += (end - start).total_seconds() / 60
-                    total_active_minutes += session.total_active_duration.total_seconds() / 60
+                    if session.total_active_duration:
+                        total_active_minutes += session.total_active_duration.total_seconds() / 60
             
             if total_scheduled_minutes > 0:
                 consistency_data.append(round(min(100, (total_active_minutes / total_scheduled_minutes) * 100), 1))
@@ -931,6 +978,7 @@ def principal_analysis(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
+        messages.error(request, f"Error loading analysis: {str(e)}")
         print(f"Analysis error: {e}")
         return redirect('principal_dashboard')
 
@@ -1062,3 +1110,11 @@ def export_defaulter_csv(request):
         ])
     
     return response
+
+@login_required
+def teacher_help(request):
+    try:
+        teacher = request.user.teacher
+        return render(request, 'teacher_help.html', {'teacher': teacher})
+    except:
+        return redirect('home')

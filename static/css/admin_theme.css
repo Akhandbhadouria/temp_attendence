@@ -1,0 +1,344 @@
+/* Admin Theme - Jewelry Shop Aesthetic */
+:root {
+    --bg-color: #FFF9F0;
+    --text-dark: #1F2937;
+    --text-light: #6B7280;
+    --card-radius: 24px;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+
+    /* Pastel Palette */
+    --color-peach: #FFE5D9;
+    --color-peach-dark: #FFD7C4;
+    --color-blue: #D0E1FD;
+    --color-blue-dark: #B6D2FC;
+    --color-purple: #E7DEFF;
+    --color-purple-dark: #D6C9F8;
+    --color-pink: #FFD6E0;
+    --color-pink-dark: #FFBCCB;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Sidebar Overrides */
+.sidebar {
+    background: transparent !important;
+    border-right: none !important;
+}
+
+.sidebar-brand {
+    color: var(--text-dark) !important;
+}
+
+.nav-item {
+    color: var(--text-light) !important;
+    border-radius: 99px !important;
+    /* Pill shape */
+    margin-bottom: 0.5rem;
+}
+
+.nav-item:hover {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.nav-item.active {
+    background-color: #1F2937 !important;
+    /* Black active state like image */
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nav-item.active i {
+    color: white !important;
+}
+
+/* Main Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2rem;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Header */
+.page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+/* Stats Cards */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card-new {
+    border-radius: var(--card-radius);
+    padding: 1.75rem;
+    position: relative;
+    transition: transform 0.2s;
+    border: none;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.stat-card-new:hover {
+    transform: translateY(-4px);
+}
+
+.stat-card-peach {
+    background-color: var(--color-peach);
+}
+
+.stat-card-blue {
+    background-color: var(--color-blue);
+}
+
+.stat-card-purple {
+    background-color: var(--color-purple);
+}
+
+.stat-card-pink {
+    background-color: var(--color-pink);
+}
+
+.stat-card-new h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    color: var(--text-dark);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    opacity: 0.8;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-icon-corner {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--text-dark);
+}
+
+/* Faculty List styling to match "Jewellery Sales Variance" */
+.content-card {
+    background: white;
+    border-radius: var(--card-radius);
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.card-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.action-circle-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #eee;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-dark);
+    transition: all 0.2s;
+}
+
+.action-circle-btn:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+/* Department Section Styles */
+.dept-section-title {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 700;
+}
+
+.teacher-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.teacher-row:last-child {
+    border-bottom: none;
+}
+
+.teacher-info-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.teacher-avatar-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.teacher-details h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    color: var(--text-dark);
+}
+
+.teacher-details p {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+/* Right Sidebar Components */
+.profile-widget {
+    text-align: center;
+    padding: 2rem;
+    background: white;
+    border-radius: var(--card-radius);
+    margin-bottom: 1.5rem;
+}
+
+.profile-img-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+    border: 4px solid var(--bg-color);
+}
+
+.info-list-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: transparent;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.info-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #F3F4F6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dark);
+}
+
+/* Buttons */
+.btn-pill {
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.2s;
+}
+
+.btn-pill:hover {
+    opacity: 0.9;
+}
+
+.badge-tag {
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.badge-purple {
+    background: #E9D5FF;
+    color: #6B21A8;
+}
+
+.badge-blue {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+/* Top Nav in Content */
+.top-nav {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0;
+    /* Changed from 1rem to 0 to overlap with border */
+}
+
+.top-nav a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.nav-tab {
+    font-weight: 600;
+    color: var(--text-light);
+    cursor: pointer;
+    padding-bottom: 1rem;
+    margin-bottom: -1px;
+    /* Changed from -1rem to -1px to align with 1px border */
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.nav-tab:hover {
+    color: var(--text-dark);
+}
+
+.nav-tab.active {
+    color: var(--text-dark);
+    border-bottom-color: var(--text-dark);
+}

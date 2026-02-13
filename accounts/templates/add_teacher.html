@@ -8,13 +8,17 @@
     <title>Add Teacher - Admin Portal</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
     <style>
         .split-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
             align-items: start;
-            max-width: 1000px;
+            /* max-width: 1000px; */
+            /* Let it span like dashboard */
             margin: 0 auto;
         }
 
@@ -25,6 +29,7 @@
             position: relative;
             width: 100%;
             height: 300px;
+            /* Fixed height for consistency */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -37,13 +42,59 @@
             transform: scaleX(-1);
         }
 
-        .capture-overlay {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
+        /* Form Styling Overrides for Theme */
+        .input-field {
             width: 100%;
-            display: flex;
-            justify-content: center;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: #F9FAFB;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #1F2937;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
+        }
+
+        .btn-primary-theme {
+            background: #1F2937;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 99px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary-theme:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary-theme {
+            background: #F3F4F6;
+            color: #1F2937;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 99px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary-theme:hover {
+            background: #E5E7EB;
+        }
+
+        @media (max-width: 900px) {
+            .split-layout {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -53,44 +104,66 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <div style="margin-bottom: 2rem; max-width: 1000px; margin-left: auto; margin-right: auto;">
-            <a href="{% url 'principal_dashboard' %}"
-                style="color: var(--text-light); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.9rem;">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <a href="{% url 'principal_dashboard' %}" style="text-decoration: none;">
+                <div class="nav-tab">Overview</div>
             </a>
-            <h1>Register New Faculty</h1>
-            <p style="color: var(--text-light);">Create a new teacher account and register their face ID.</p>
+            <a href="{% url 'principal_dashboard' %}#facultyList" style="text-decoration: none;">
+                <div class="nav-tab">Faculty</div>
+            </a>
+            <a href="{% url 'add_teacher' %}" style="text-decoration: none;">
+                <div class="nav-tab active">Add Teacher</div>
+            </a>
+            <a href="{% url 'principal_analysis' %}" style="text-decoration: none;">
+                <div class="nav-tab">Reports</div>
+            </a>
+        </div>
+
+        <div class="page-header">
+            <div>
+                <h1>Register New Faculty</h1>
+                <p>Create a new teacher account and register their face ID.</p>
+            </div>
+
+            <a href="{% url 'principal_dashboard' %}" class="btn-pill"
+                style="background: white; border: 1px solid #eee;">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
         </div>
 
         <div class="split-layout">
             <!-- Left: Form -->
-            <div class="card">
-                <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Account Details</h2>
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>Account Details</h2>
+                </div>
+
                 <form id="teacherForm" onsubmit="submitForm(event)">
                     {% csrf_token %}
                     <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                         <div>
                             <label
-                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Full
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Full
                                 Name</label>
                             <input type="text" id="name" name="name" class="input-field" required
-                                placeholder="">
+                                placeholder="e.g. Dr. Sarah Smith">
                         </div>
                         <div>
                             <label
-                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Username</label>
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Username</label>
                             <input type="text" id="username" name="username" class="input-field" required
-                                placeholder="">
+                                placeholder="e.g. sarah2024">
                         </div>
                         <div>
                             <label
-                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Password</label>
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Password</label>
                             <input type="password" id="password" name="password" class="input-field" required
-                                placeholder="">
+                                placeholder="••••••••">
                         </div>
                         <div>
                             <label
-                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Department</label>
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Department</label>
                             <select id="department" name="department" class="input-field" required>
                                 <option value="">Select Department</option>
                                 <option value="CS">Computer Science</option>
@@ -112,10 +185,10 @@
                         <input type="hidden" id="face_image" name="face_image">
 
                         <div id="statusMessage"
-                            style="margin-top: 10px; font-size: 0.9rem; display:none; padding:10px; border-radius:8px;">
+                            style="margin-top: 10px; font-size: 0.9rem; display:none; padding:10px; border-radius:12px;">
                         </div>
 
-                        <button type="submit" id="submitBtn" class="btn btn-primary"
+                        <button type="submit" id="submitBtn" class="btn-primary-theme"
                             style="width: 100%; margin-top: 1rem;" disabled>
                             Complete Registration
                         </button>
@@ -124,8 +197,12 @@
             </div>
 
             <!-- Right: Camera -->
-            <div class="card">
-                <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Face Registration</h2>
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>Face Registration</h2>
+                    <span class="badge-tag badge-purple">Required</span>
+                </div>
+
                 <div class="camera-box">
                     <video id="video" autoplay playsinline></video>
                     <img id="capturedImage"
@@ -134,14 +211,14 @@
                 </div>
 
                 <div style="margin-top: 1.5rem; text-align: center;">
-                    <button id="captureBtn" class="btn btn-secondary" style="width: 100%;">
+                    <button id="captureBtn" class="btn-secondary-theme" style="width: 100%;">
                         <i class="fas fa-camera"></i> Capture Face
                     </button>
-                    <button id="retakeBtn" class="btn btn-secondary" style="width: 100%; display: none;">
+                    <button id="retakeBtn" class="btn-secondary-theme" style="width: 100%; display: none;">
                         <i class="fas fa-redo"></i> Retake Photo
                     </button>
-                    <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-light);">
-                        Ensure the face is clearly visible and well-lit.
+                    <p style="margin-top: 1rem; font-size: 0.85rem; color: #6B7280;">
+                        Position the face within the frame. Ensure good lighting for best results.
                     </p>
                 </div>
             </div>

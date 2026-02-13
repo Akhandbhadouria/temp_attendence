@@ -474,216 +474,325 @@
 <body>
     {% include 'sidebar_principal.html' %}
 
+    <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
+
     <!-- Main Content -->
     <div class="main-content">
-        <!-- Page Header -->
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <a href="#" style="text-decoration: none; ">
+                <div class="nav-tab active">Overview</div>
+            </a>
+            <a href="#facultyList" style="text-decoration: none; ">
+                <div class="nav-tab">Faculty</div>
+            </a>
+            <a href="{% url 'add_teacher' %}" style="text-decoration: none; ">
+                <div class="nav-tab">Add Teacher</div>
+            </a>
+            <a href="{% url 'principal_analysis' %}" style="text-decoration: none; ">
+                <div class="nav-tab">Reports</div>
+            </a>
+
+        </div>
+
         <div class="page-header">
             <div>
                 <h1>{{ user.principal.school_name }}</h1>
-                <p>Principal Dashboard</p>
-            </div>
-            <a href="/add-teacher/" class="btn btn-primary">
-                <i class="fas fa-plus"></i>
-                Add New Faculty
-            </a>
-        </div>
-
-        <!-- Stats Row -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon blue">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>{{ teachers.count }}</h3>
-                    <p>Total Teachers</p>
-                </div>
+                <p>Principal Dashboard & Admin Control</p>
             </div>
 
-            <div class="stat-card">
-                <div class="stat-icon green">
-                    <i class="fas fa-building"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>{{ teachers_by_dept|length }}</h3>
-                    <p>Departments</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon yellow">
-                    <i class="fas fa-user-check"></i>
-                </div>
-                <div class="stat-content">
-                    <h3>{{ present_today_count }}</h3>
-                    <p>Present Today</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Department Filter & Search -->
-        {% if teachers_by_dept %}
-        <div class="filter-search-container">
-            <div class="filter-row">
-                <div class="department-filter">
-                    <div class="department-chips">
-                        <div class="dept-chip active" onclick="filterDepartment('all')" data-dept="all">
-                            <i class="fas fa-th"></i>
-                            <span>All</span>
-                            <span class="count">{{ teachers.count }}</span>
-                        </div>
-                        {% for department, dept_teachers in teachers_by_dept.items %}
-                        <div class="dept-chip" onclick="filterDepartment('{{ department }}')"
-                            data-dept="{{ department }}">
-                            <i class="fas fa-folder"></i>
-                            <span>{{ department }}</span>
-                            <span class="count">{{ dept_teachers|length }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
+            <div style="display: flex; gap: 10px;">
                 <div class="search-container">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" id="teacherSearch" placeholder="Search teachers..."
+                    <input type="text" class="search-input" id="teacherSearch" placeholder="Search faculty..."
                         onkeyup="searchTeachers()">
                 </div>
-            </div>
-        </div>
-
-        <!-- Faculty Directory by Department -->
-        {% for department, dept_teachers in teachers_by_dept.items %}
-        <div class="faculty-card department-section" data-department="{{ department }}">
-            <div class="faculty-header">
-                <div>
-                    <h2>{{ department }}</h2>
-                    <p>{{ dept_teachers|length }} Faculty Member{{ dept_teachers|length|pluralize }}</p>
-                </div>
-                <span class="badge badge-blue">{{ dept_teachers|length }}</span>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Teacher Name</th>
-                        <th>Username</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for teacher in dept_teachers %}
-                    <tr>
-                        <td>
-                            <div class="teacher-info">
-                                <div class="teacher-avatar">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <span class="teacher-name">{{ teacher.name }}</span>
-                            </div>
-                        </td>
-                        <td style="font-weight: 500; color: #64748b;">{{ teacher.user.username }}</td>
-                        <td><span class="badge badge-green">Active</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <a href="{% url 'view_teacher_reports' teacher.id %}" class="btn-schedule"
-                                    style="background: #e0f2fe; color: #0284c7;">
-                                    <i class="fas fa-file-alt"></i> Reports
-                                </a>
-                                <a href="{% url 'schedule_teacher' teacher.id %}" class="btn-schedule">
-                                    <i class="far fa-calendar-alt"></i>
-                                    Schedule
-                                </a>
-                                <button onclick="confirmDelete({{ teacher.id }}, '{{ teacher.name }}')"
-                                    class="btn-delete">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% endfor %}
-        {% else %}
-
-        <div class="faculty-card">
-            <div class="empty-state">
-                <i class="fas fa-users"></i>
-                <h3>No teachers registered yet</h3>
-                <p>Start building your faculty by adding your first teacher.</p>
-                <a href="/add-teacher/" class="btn btn-primary">
-                    <i class="fas fa-plus"></i>
-                    Register First Teacher
+                <a href="{% url 'add_teacher' %}" class="btn-pill" style="background: #1F2937; color: white;">
+                    <i class="fas fa-plus"></i> Add Teacher
                 </a>
             </div>
         </div>
+
+        {% if messages %}
+        <div style="margin-bottom: 2rem;">
+            {% for message in messages %}
+            <div
+                style="padding: 1rem; border-radius: 12px; margin-bottom: 0.5rem; background: {% if message.tags == 'error' %}#fee2e2; color: #dc2626;{% else %}#dcfce7; color: #16a34a;{% endif %} font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                <i
+                    class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
         {% endif %}
+
+        <div class="dashboard-grid">
+            <!-- Left Column -->
+            <div class="left-col">
+
+                <!-- Business Summary Section -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 class="dept-section-title"><i class="fas fa-chart-pie"></i> Institute Summary</h3>
+
+                    <div class="stats-container">
+                        <!-- Total Teachers (Peach) -->
+                        <div class="stat-card-new stat-card-peach">
+                            <div class="stat-icon-corner"><i class="fas fa-expand-alt"></i></div>
+                            <div>
+                                <div class="stat-label"><i class="fas fa-chalkboard-teacher"></i> Total Faculty</div>
+                                <h3>{{ teachers.count }}</h3>
+                                <p style="font-size: 0.8rem; opacity: 0.7;">Active teaching staff</p>
+                            </div>
+                        </div>
+
+                        <!-- Departments (Blue) -->
+                        <div class="stat-card-new stat-card-blue">
+                            <div class="stat-icon-corner"><i class="fas fa-expand-alt"></i></div>
+                            <div>
+                                <div class="stat-label"><i class="fas fa-building"></i> Departments</div>
+                                <h3>{{ teachers_by_dept|length }}</h3>
+                                <p style="font-size: 0.8rem; opacity: 0.7;">Academic disciplines</p>
+                            </div>
+                        </div>
+
+                        <!-- Present Today (Purple) -->
+                        <div class="stat-card-new stat-card-purple">
+                            <div class="stat-icon-corner"><i class="fas fa-expand-alt"></i></div>
+                            <div>
+                                <div class="stat-label"><i class="fas fa-check-circle"></i> Present Today</div>
+                                <h3>{{ present_today_count }}</h3>
+                                <p style="font-size: 0.8rem; opacity: 0.7;">Checked in faculty</p>
+                            </div>
+                        </div>
+
+                        <!-- Absent (Pink) -->
+                        <div class="stat-card-new stat-card-pink">
+                            <div class="stat-icon-corner"><i class="fas fa-expand-alt"></i></div>
+                            <div>
+                                <div class="stat-label"><i class="fas fa-times-circle"></i> Absent/Late</div>
+                                <h3>--</h3>
+                                <p style="font-size: 0.8rem; opacity: 0.7;">Daily variance</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Faculty Overview (Replaces Jewellery Variance) -->
+                <!-- Faculty Overview (Replaces Jewellery Variance) -->
+                <div class="content-card" id="facultyList">
+                    <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 1rem;">
+                        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                            <h2>Faculty Variance & Performance</h2>
+                            <button class="action-circle-btn"><i class="fas fa-ellipsis-h"></i></button>
+                        </div>
+
+                        <!-- Mini Headers / Department Filter Tabs -->
+                        {% if teachers_by_dept %}
+                        <div style="display: flex; gap: 0.75rem; overflow-x: auto; width: 100%; padding-bottom: 5px;">
+                            <button onclick="filterFaculty('all')" class="dept-filter-btn active" data-filter="all">
+                                All
+                            </button>
+                            {% for department in teachers_by_dept.keys %}
+                            <button onclick="filterFaculty('{{ department }}')" class="dept-filter-btn"
+                                data-filter="{{ department }}">
+                                {{ department }}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <style>
+                        .dept-filter-btn {
+                            padding: 6px 16px;
+                            border-radius: 20px;
+                            border: 1px solid #e5e7eb;
+                            background: white;
+                            color: #6b7280;
+                            font-size: 0.85rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            white-space: nowrap;
+                            transition: all 0.2s;
+                        }
+
+                        .dept-filter-btn:hover {
+                            background: #f9fafb;
+                            border-color: #d1d5db;
+                        }
+
+                        .dept-filter-btn.active {
+                            background: #1F2937;
+                            color: white;
+                            border-color: #1F2937;
+                        }
+                    </style>
+
+                    {% if teachers_by_dept %}
+                    <div id="facultyList">
+                        {% for department, dept_teachers in teachers_by_dept.items %}
+                        <div class="department-group" data-dept-group="{{ department }}">
+
+                            {% for teacher in dept_teachers %}
+                            <div class="teacher-row">
+                                <div class="teacher-info-group">
+                                    <div class="teacher-avatar-large"
+                                        style="background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
+                                        <span
+                                            style="font-weight: 700; color: #6b7280; font-size: 1.2rem;">{{teacher.name|slice:":1"}}</span>
+                                    </div>
+                                    <div class="teacher-details">
+                                        <h4>{{ teacher.name }}</h4>
+                                        <p>{{ teacher.user.username }} • <span
+                                                style="color: #6366f1; font-weight: 500;">{{ department }}</span></p>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <span class="badge-tag badge-blue">Active</span>
+
+                                    <a href="{% url 'view_teacher_reports' teacher.id %}" class="action-circle-btn"
+                                        title="Reports">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </a>
+                                    <a href="{% url 'schedule_teacher' teacher.id %}" class="action-circle-btn"
+                                        title="Schedule">
+                                        <i class="far fa-calendar-alt"></i>
+                                    </a>
+                                    <button onclick="confirmDelete({{ teacher.id }}, '{{ teacher.name }}')"
+                                        class="action-circle-btn" title="Remove" style="color: #ef4444;">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-users" style="font-size: 3rem; color: #e5e7eb; margin-bottom: 1rem;"></i>
+                        <p>No faculty members found.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <script>
+                    function filterFaculty(department) {
+                        // Update active button state
+                        document.querySelectorAll('.dept-filter-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                            if (btn.dataset.filter === department) {
+                                btn.classList.add('active');
+                            }
+                        });
+
+                        // Filter groups
+                        const groups = document.querySelectorAll('.department-group');
+                        groups.forEach(group => {
+                            if (department === 'all' || group.dataset.deptGroup === department) {
+                                group.style.display = 'block';
+                            } else {
+                                group.style.display = 'none';
+                            }
+                        });
+                    }
+                </script>
+
+            </div>
+
+            <!-- Right Column -->
+            <div class="right-col">
+                <!-- User Profile -->
+                <div class="content-card profile-widget">
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: -20px;">
+                        <button class="action-circle-btn"><i class="fas fa-pen"></i></button>
+                    </div>
+
+                    <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=FFE5D9&color=1F2937&size=128"
+                        alt="Profile" class="profile-img-large">
+
+                    <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">{{ user.username }}</h2>
+                    <p style="color: var(--text-light); margin-bottom: 1.5rem;">Principal • Administrator</p>
+                    <br>
+
+
+                    <div style="text-align: left;">
+                        <h4 class="dept-section-title">Detailed Information</h4>
+
+                        <div class="info-list-item">
+                            <div class="info-icon"><i class="fas fa-school"></i></div>
+                            <div>
+                                <div style="font-size: 0.8rem; opacity: 0.7;">School Name</div>
+                                <div style="font-weight: 600;">{{ user.principal.school_name }}</div>
+                            </div>
+                        </div>
+
+                        <div class="info-list-item">
+                            <div class="info-icon"><i class="fas fa-calendar-check"></i></div>
+                            <div>
+                                <div style="font-size: 0.8rem; opacity: 0.7;">System Status</div>
+                                <div style="font-weight: 600; color: #10b981;">Operational</div>
+                            </div>
+                        </div>
+
+                        <div class="info-list-item">
+                            <div class="info-icon"><i class="fas fa-clock"></i></div>
+                            <div>
+                                <div style="font-size: 0.8rem; opacity: 0.7;">Last Login</div>
+                                <div style="font-weight: 600;">{% now "h:i A" %}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity / Milestones -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2>Quick Actions</h2>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <a href="{% url 'add_teacher' %}" class="btn-pill"
+                            style="background: #F3F4F6; color: var(--text-dark); justify-content: center;">
+                            Register New Teacher
+                        </a>
+                        <a href="{% url 'principal_analysis' %}" class="btn-pill"
+                            style="background: #F3F4F6; color: var(--text-dark); justify-content: center;">
+                            View Analytics
+                        </a>
+                        <a href="{% url 'export_defaulter_csv' %}" class="btn-pill"
+                            style="background: #FFF1F2; color: #BE123C; justify-content: center;">
+                            Export Defaulters
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
     <script>
         function filterDepartment(dept) {
-            // Update chip active states
-            document.querySelectorAll('.dept-chip').forEach(chip => {
-                chip.classList.remove('active');
-            });
-            event.currentTarget.classList.add('active');
-
-            // Show/hide department sections
-            const sections = document.querySelectorAll('.department-section');
-            let visibleCount = 0;
-
-            sections.forEach(section => {
-                if (dept === 'all' || section.dataset.department === dept) {
-                    section.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    section.style.display = 'none';
-                }
-            });
-
-            // Clear search when switching departments
-            document.getElementById('teacherSearch').value = '';
+            // Simplified for new layout: Scroll to section or filter list
+            // For now, implementing simple visibility toggle if we kept chips, but we removed chips for a cleaner list.
+            // We can re-implement search filtering.
         }
 
         function searchTeachers() {
             const searchTerm = document.getElementById('teacherSearch').value.toLowerCase();
-            const sections = document.querySelectorAll('.department-section');
+            const teacherRows = document.querySelectorAll('.teacher-row');
 
-            sections.forEach(section => {
-                // Only search in visible sections (based on department filter)
-                if (section.style.display === 'none') return;
-
-                const rows = section.querySelectorAll('tbody tr');
-                let hasVisibleRows = false;
-
-                rows.forEach(row => {
-                    const teacherName = row.querySelector('.teacher-name').textContent.toLowerCase();
-                    const username = row.querySelectorAll('td')[1].textContent.toLowerCase();
-
-                    if (teacherName.includes(searchTerm) || username.includes(searchTerm)) {
-                        row.style.display = '';
-                        hasVisibleRows = true;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                // Hide section if no rows are visible
-                if (searchTerm && !hasVisibleRows) {
-                    section.style.display = 'none';
-                } else if (!searchTerm) {
-                    // Show section if search is cleared and it matches department filter
-                    const activeChip = document.querySelector('.dept-chip.active');
-                    const activeDept = activeChip.dataset.dept;
-                    if (activeDept === 'all' || section.dataset.department === activeDept) {
-                        section.style.display = 'block';
-                    }
+            teacherRows.forEach(row => {
+                const name = row.querySelector('.teacher-details h4').innerText.toLowerCase();
+                if (name.includes(searchTerm)) {
+                    row.style.display = 'flex';
+                } else {
+                    row.style.display = 'none';
                 }
             });
         }
-
 
         function getCookie(name) {
             let cookieValue = null;
@@ -701,34 +810,26 @@
         }
 
         function confirmDelete(teacherId, teacherName) {
-            if (confirm(`Are you sure you want to delete ${teacherName}?\n\nThis will permanently remove:\n• Teacher account\n• All schedules\n• All attendance records\n• Face recognition data\n\nThis action cannot be undone.`)) {
+            if (confirm(`Are you sure you want to delete ${teacherName}?\n\nThis will permanently remove:\n• Teacher account\n• All schedules\n• All attendance records\nActions cannot be undone.`)) {
                 deleteTeacher(teacherId);
             }
         }
 
         function deleteTeacher(teacherId) {
             const csrftoken = getCookie('csrftoken');
-
             fetch(`/principal/delete-teacher/${teacherId}/`, {
                 method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' }
             })
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        alert(data.message);
                         window.location.reload();
                     } else {
                         alert('Error: ' + data.message);
                     }
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the teacher.');
-                });
+                .catch(err => console.error(err));
         }
     </script>
 </body>

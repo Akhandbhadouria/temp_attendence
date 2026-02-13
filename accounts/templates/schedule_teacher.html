@@ -8,12 +8,89 @@
     <title>Schedule - {{ teacher.name }}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
     <style>
         .schedule-grid {
             display: grid;
             grid-template-columns: 350px 1fr;
             gap: 2rem;
             align-items: start;
+        }
+
+        .day-selector {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #f3f4f6;
+            scrollbar-width: none;
+        }
+
+        .day-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .day-chip {
+            padding: 0.5rem 1.2rem;
+            border-radius: 999px;
+            background: #F9FAFB;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .day-chip:hover {
+            background: #e5e7eb;
+            color: var(--text-dark);
+        }
+
+        .day-chip.active {
+            background: #1F2937;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Form Styling Override */
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: #F9FAFB;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #1F2937;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.1);
+        }
+
+        .schedule-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border-radius: 12px;
+            background: #F9FAFB;
+            margin-bottom: 0.75rem;
+            border: 1px solid #f3f4f6;
+        }
+
+        @media (max-width: 1000px) {
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -23,20 +100,38 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <div style="margin-bottom: 2rem;">
-            <a href="{% url 'principal_dashboard' %}"
-                style="color: var(--text-light); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.9rem;">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <a href="{% url 'principal_dashboard' %}" style="text-decoration: none;">
+                <div class="nav-tab">Overview</div>
             </a>
-            <h1>Manage Schedule</h1>
-            <p style="color: var(--text-light);">Define class timings for <strong>{{ teacher.name }}</strong></p>
+            <a href="{% url 'principal_dashboard' %}#facultyList" style="text-decoration: none;">
+                <div class="nav-tab active">Faculty</div>
+            </a>
+            <a href="{% url 'add_teacher' %}" style="text-decoration: none;">
+                <div class="nav-tab">Add Teacher</div>
+            </a>
+            <a href="{% url 'principal_analysis' %}" style="text-decoration: none;">
+                <div class="nav-tab">Reports</div>
+            </a>
+        </div>
+
+        <div class="page-header">
+            <div>
+                <a href="{% url 'principal_dashboard' %}"
+                    style="color: var(--text-light); text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <h1>Manage Schedule</h1>
+                <p style="color: var(--text-light);">Define class timings for <strong>{{ teacher.name }}</strong></p>
+            </div>
         </div>
 
         {% if messages %}
         <div style="margin-bottom: 2rem;">
             {% for message in messages %}
             <div
-                style="padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; background: {% if message.tags == 'error' %}#fee2e2; color: #dc2626; border: 1px solid #fecaca;{% else %}#dcfce7; color: #16a34a; border: 1px solid #bbf7d0;{% endif %} font-weight: 500; display: flex; align-items: center; gap: 10px;">
+                style="padding: 1rem; border-radius: 12px; margin-bottom: 0.5rem; background: {% if message.tags == 'error' %}#fee2e2; color: #dc2626;{% else %}#dcfce7; color: #16a34a;{% endif %} font-weight: 600; display: flex; align-items: center; gap: 10px;">
                 <i
                     class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %}"></i>
                 {{ message }}
@@ -47,14 +142,16 @@
 
         <div class="schedule-grid">
             <!-- Add Slot Form -->
-            <div class="card">
-                <h2 style="font-size: 1.25rem; margin-bottom: 1.5rem;">Add New Class</h2>
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>Add New Class</h2>
+                </div>
                 <form method="POST">
                     {% csrf_token %}
                     <div style="display: flex; flex-direction: column; gap: 1.25rem;">
                         <div>
                             <label
-                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Subject
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Subject
                                 Name</label>
                             <input type="text" name="subject" class="input-field" required
                                 placeholder="e.g. Mathematics">
@@ -62,7 +159,7 @@
 
                         <div>
                             <label
-                                style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Day
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Day
                                 of Week</label>
                             <select name="day" class="input-field" required>
                                 <option value="" disabled selected>Select Day</option>
@@ -78,19 +175,20 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div>
                                 <label
-                                    style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">Start
+                                    style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Start
                                     Time</label>
                                 <input type="time" name="start_time" class="input-field" required>
                             </div>
                             <div>
                                 <label
-                                    style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500;">End
+                                    style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">End
                                     Time</label>
                                 <input type="time" name="end_time" class="input-field" required>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem; width: 100%;">
+                        <button type="submit" class="btn-primary"
+                            style="margin-top: 0.5rem; width: 100%; justify-content: center; background: #1F2937; color: white; border: none; padding: 0.75rem; border-radius: 99px; cursor: pointer;">
                             <i class="fas fa-plus-circle"></i> Add to Schedule
                         </button>
                     </div>
@@ -98,59 +196,126 @@
             </div>
 
             <!-- List of Slots -->
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 style="font-size: 1.25rem;">Current Timetable</h2>
+            <div class="content-card">
+                <div class="card-header">
+                    <h2>Current Timetable</h2>
                     {% if timetable %}
                     <form method="POST" action="{% url 'delete_all_schedule' teacher.id %}"
                         onsubmit="return confirm('Are you sure you want to delete the ENTIRE timetable for this teacher? This cannot be undone.');">
                         {% csrf_token %}
-                        <button type="submit" class="btn"
-                            style="background: #fee2e2; color: #dc2626; padding: 6px 12px; font-size: 0.8rem;">
-                            <i class="fas fa-trash-sweep"></i> Clear All Classes
+                        <button type="submit" class="btn-pill"
+                            style="background: #fee2e2; color: #dc2626; border: none; cursor: pointer;">
+                            <i class="fas fa-trash-sweep"></i> Clear All
                         </button>
                     </form>
                     {% endif %}
                 </div>
-                {% if timetable %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Day</th>
-                            <th>Time</th>
-                            <th>Subject</th>
-                            <th style="text-align: right;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for slot in timetable %}
-                        <tr>
-                            <td>{{ slot.get_day_display }}</td>
-                            <td>{{ slot.start_time|time:"h:i A" }} - {{ slot.end_time|time:"h:i A" }}</td>
-                            <td><span class="badge badge-blue">{{ slot.subject }}</span></td>
-                            <td style="text-align: right;">
-                                <form method="POST" action="{% url 'delete_schedule' slot.id %}"
-                                    onsubmit="return confirm('Are you sure you want to remove this class?');"
-                                    style="display: inline;">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                        style="background: none; border: none; color: var(--danger); cursor: pointer; padding: 5px;">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                <div style="text-align: center; padding: 3rem; color: var(--text-light);">
-                    <p>No classes scheduled yet. Add one from the left panel.</p>
+
+                <div class="day-selector">
+                    <div class="day-chip active" data-day="MON">Monday</div>
+                    <div class="day-chip" data-day="TUE">Tuesday</div>
+                    <div class="day-chip" data-day="WED">Wednesday</div>
+                    <div class="day-chip" data-day="THU">Thursday</div>
+                    <div class="day-chip" data-day="FRI">Friday</div>
+                    <div class="day-chip" data-day="SAT">Saturday</div>
                 </div>
-                {% endif %}
+
+                <div id="schedule-container">
+                    {% if timetable %}
+                    {% for slot in timetable %}
+                    <div class="schedule-row" data-day="{{ slot.day }}" style="display: none;">
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 700; color: #1F2937;">{{ slot.subject }}</span>
+                                <span style="font-size: 0.85rem; color: #6B7280;">{{ slot.start_time|time:"h:i A" }} -
+                                    {{ slot.end_time|time:"h:i A" }}</span>
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{% url 'delete_schedule' slot.id %}"
+                            onsubmit="return confirm('Remove class?');">
+                            {% csrf_token %}
+                            <button type="submit" class="action-circle-btn"
+                                style="color: #ef4444; border-color: #fca5a5; background: #fef2f2;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+
+                    <div id="empty-state" style="text-align: center; padding: 3rem; color: #9CA3AF; display: none;">
+                        <i class="far fa-calendar-times"
+                            style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                        <p>No classes scheduled for this day.</p>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 3rem; color: #9CA3AF;">
+                        <i class="far fa-calendar-plus"
+                            style="font-size: 2rem; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                        <p>No classes scheduled yet. Add one from the left panel.</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const dayChips = document.querySelectorAll('.day-chip');
+            const scheduleRows = document.querySelectorAll('.schedule-row');
+            const emptyState = document.getElementById('empty-state');
+            const container = document.getElementById('schedule-container');
+
+            const dayMap = { 1: 'MON', 2: 'TUE', 3: 'WED', 4: 'THU', 5: 'FRI', 6: 'SAT', 0: 'MON' };
+            const today = new Date().getDay();
+            let activeDay = dayMap[today] || 'MON'; // Default to Today
+
+            function filterSchedule(day) {
+                // Update Chips
+                dayChips.forEach(chip => {
+                    if (chip.dataset.day === day) {
+                        chip.classList.add('active');
+                    } else {
+                        chip.classList.remove('active');
+                    }
+                });
+
+                let visibleCount = 0;
+
+                // Toggle Rows
+                scheduleRows.forEach(row => {
+                    if (row.dataset.day === day) {
+                        row.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                // Handle Empty State
+                if (emptyState) {
+                    if (visibleCount === 0) {
+                        emptyState.style.display = 'block';
+                    } else {
+                        emptyState.style.display = 'none';
+                    }
+                }
+            }
+
+            dayChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    activeDay = chip.dataset.day;
+                    filterSchedule(activeDay);
+                });
+            });
+
+            // Initial Filter
+            // Iterate chips to find the default active day (if UI has one pre-set, otherwise set based on JS)
+            // Actually, let's just use the JS calculated day
+            filterSchedule(activeDay);
+        });
+    </script>
 </body>
 
 </html>

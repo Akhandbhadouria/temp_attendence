@@ -40,5 +40,7 @@ urlpatterns = [
     path('teacher/live-monitoring/', views.live_class_monitoring, name='live_class_monitoring'),
     path('teacher/update-live-attendance/', views.update_live_attendance, name='update_live_attendance'),
     path('teacher/end-class/', views.end_class, name='end_class'),
+    path('teacher/records/', views.previous_records_teacher, name='previous_records_teacher'),
+    path('teacher/help/', views.teacher_help, name='teacher_help'),
     path('admin/', admin.site.urls),
 ]

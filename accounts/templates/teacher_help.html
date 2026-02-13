@@ -1,0 +1,251 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Support - Teacher Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/teacher_theme.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .help-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .help-section h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .help-step {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: #e0f2fe;
+            color: var(--primary-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-content h3 {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .step-content p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .faq-item {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 1rem;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-answer {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-top: 0.5rem;
+        }
+
+        .contact-card {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    {% include 'sidebar_teacher.html' %}
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Left Section -->
+        <div class="left-section">
+            <div style="margin-bottom: 2rem;">
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700;">Help & Support</h1>
+                <p style="color: var(--text-light);">Guide on how to use the Teacher Portal effectively.</p>
+            </div>
+
+            <!-- Dashboard Guide -->
+            <div class="help-section">
+                <h2><i class="fas fa-tachometer-alt" style="color: var(--primary-blue);"></i> Getting Started</h2>
+                <div class="help-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Dashboard Overview</h3>
+                        <p>Your dashboard is the central hub. Here you can see your weekly schedule, active classes, and
+                            quick stats about your attendance.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Checking Your Schedule</h3>
+                        <p>Use the tabs on the dashboard (Mon, Tue, Wed, etc.) to view your classes for specific days.
+                            Today's classes are highlighted.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Guide -->
+            <div class="help-section">
+                <h2><i class="fas fa-user-check" style="color: #10b981;"></i> Managing Attendance</h2>
+                <div class="help-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Daily Check-in</h3>
+                        <p>Click the "Mark Attendance" button on the dashboard top right corner. You'll need to scan
+                            your face to verify your identity and mark your presence for the day.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Starting a Class</h3>
+                        <p>When it's time for a class, locate it in your schedule table and click the green "Start
+                            Class" button. This initiates the session tracking.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Live Monitoring</h3>
+                        <p>During a class, keep the "Live Class Monitoring" tab open. The system periodically verifies
+                            your presence via camera to track active duration.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Ending a Class</h3>
+                        <p>Once your class is finished, click the red "End Class" button. This finalizes the session and
+                            logs the total active duration.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Guide -->
+            <div class="help-section">
+                <h2><i class="fas fa-chart-line" style="color: #f59e0b;"></i> Viewing Records</h2>
+                <div class="help-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Previous Records</h3>
+                        <p>Navigate to the "Previous Records" page from the sidebar to view a complete history of your
+                            completed classes, including dates, times, and adherence scores.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="help-section">
+                <h2><i class="fas fa-question-circle" style="color: #6366f1;"></i> Frequently Asked Questions</h2>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What if my face isn't recognized?
+                    </div>
+                    <div class="faq-answer">
+                        Ensure you are in a well-lit area and remove mask/glasses. If the problem persists, contact the
+                        principal to re-register your face data.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Can I edit my timetable?
+                    </div>
+                    <div class="faq-answer">
+                        No, timetables are managed by the school administration (Principal). Please request any schedule
+                        changes through them.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How is my "Active Duration" calculated?
+                    </div>
+                    <div class="faq-answer">
+                        The system checks your presence in front of the camera every few seconds while a class is
+                        ongoing. Your active duration is the sum of time segments where you were successfully verified.
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Right Section -->
+        <div class="right-section">
+            <!-- User Profile Card -->
+            <div class="user-profile-card">
+                <div class="user-avatar">
+                    <img src="https://ui-avatars.com/api/?name={{ teacher.name }}&background=7b92d4&color=fff&size=120&font-size=0.45"
+                        alt="{{ teacher.name }}">
+                </div>
+                <h3>{{ teacher.name }}</h3>
+                <p class="role-tag">Teacher</p>
+                <a href="{% url 'teacher_profile' %}" class="btn-profile"
+                    style="text-decoration: none; display: inline-block;">View Profile</a>
+            </div>
+
+            <!-- Contact Support -->
+            <div class="contact-card">
+                <i class="fas fa-headset" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.9;"></i>
+                <h3 style="margin-bottom: 0.5rem; color: white;">Still having trouble?</h3>
+                <p style="margin-bottom: 1.5rem; opacity: 0.9; font-size: 0.9rem;">Contact the IT department or your
+                    Principal for further assistance.</p>
+                <a href="mailto:support@school.edu"
+                    style="background: white; color: var(--primary-color); padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 700; display: inline-block;">Contact
+                    Admin</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
