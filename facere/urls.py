@@ -28,6 +28,7 @@ urlpatterns = [
     path('principal/schedule/<int:teacher_id>/', views.schedule_teacher, name='schedule_teacher'),
     path('principal/reports/<int:teacher_id>/', views.view_teacher_reports, name='view_teacher_reports'),
     path('principal/analysis/', views.principal_analysis, name='principal_analysis'),
+path('principal/teacher-analysis/<int:teacher_id>/', views.teacher_analysis, name='teacher_analysis'),
     path('principal/export-defaulters/', views.export_defaulter_csv, name='export_defaulter_csv'),
     path('principal/delete-schedule/<int:timetable_id>/', views.delete_schedule, name='delete_schedule'),
     path('principal/delete-all-schedule/<int:teacher_id>/', views.delete_all_schedule, name='delete_all_schedule'),

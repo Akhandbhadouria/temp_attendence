@@ -1,0 +1,969 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Analysis - {{ teacher.name }}</title>
+    <meta name="description" content="Comprehensive performance analysis for {{ teacher.name }}">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ── Page Layout ── */
+        .analysis-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .back-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .back-link-btn:hover {
+            color: var(--text-dark);
+        }
+
+        .teacher-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        /* ── Stats Hero Cards ── */
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-stat {
+            border-radius: 20px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .hero-stat:hover {
+            transform: translateY(-6px);
+        }
+
+        .hero-stat::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+
+        .hero-stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            line-height: 1.1;
+        }
+
+        .hero-stat-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            opacity: 0.7;
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .hero-stat-icon {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text-dark);
+        }
+
+        /* ── Analysis Grid ── */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .analysis-card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 1.75rem;
+            box-shadow: var(--card-shadow);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .analysis-card:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        .full-span {
+            grid-column: span 2;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title i {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 320px;
+        }
+
+        .chart-container-sm {
+            position: relative;
+            width: 100%;
+            height: 280px;
+        }
+
+        /* ── Risk Gauge Section ── */
+        .gauge-section {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        .gauge-wrapper {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            flex-shrink: 0;
+        }
+
+        .gauge-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .gauge-score {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .gauge-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        .gauge-details {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .gauge-category {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+        }
+
+        .gauge-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 1.25rem;
+        }
+
+        .risk-factors {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .risk-factor {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: #F9FAFB;
+            border-radius: 12px;
+            font-size: 0.88rem;
+        }
+
+        .risk-factor-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .risk-factor-value {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        /* ── Heatmap ── */
+        .heatmap-container {
+            overflow-x: auto;
+        }
+
+        .heatmap-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4px;
+        }
+
+        .heatmap-table th {
+            padding: 0.5rem 0.4rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+            border: none;
+        }
+
+        .heatmap-table td.day-label {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            white-space: nowrap;
+            border: none;
+            text-align: right;
+        }
+
+        .heatmap-cell {
+            width: 48px;
+            height: 42px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: default;
+            border: none;
+            position: relative;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 2;
+        }
+
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.25rem;
+            justify-content: center;
+        }
+
+        .heatmap-legend-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .heatmap-legend-swatch {
+            width: 20px;
+            height: 14px;
+            border-radius: 4px;
+        }
+
+        /* ── Filter Bar ── */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .filter-bar label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-bar select {
+            padding: 0.6rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: #F9FAFB;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .filter-bar select:focus {
+            border-color: var(--text-dark);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(31, 41, 55, 0.08);
+        }
+
+        .filter-bar .reset-btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 99px;
+            background: #F3F4F6;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .filter-bar .reset-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeInUp 0.5s ease-out both;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+        }
+
+        .delay-5 {
+            animation-delay: 0.5s;
+        }
+
+        .delay-6 {
+            animation-delay: 0.6s;
+        }
+
+        .delay-7 {
+            animation-delay: 0.7s;
+        }
+
+        .delay-8 {
+            animation-delay: 0.8s;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 1200px) {
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-span {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .gauge-section {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .gauge-details {
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'sidebar_principal.html' %}
+
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <div class="top-nav">
+            <a href="{% url 'principal_dashboard' %}" style="text-decoration: none;">
+                <div class="nav-tab">Overview</div>
+            </a>
+            <a href="{% url 'principal_dashboard' %}#facultyList" style="text-decoration: none;">
+                <div class="nav-tab">Faculty</div>
+            </a>
+            <a href="{% url 'add_teacher' %}" style="text-decoration: none;">
+                <div class="nav-tab">Add Teacher</div>
+            </a>
+            <a href="{% url 'principal_analysis' %}" style="text-decoration: none;">
+                <div class="nav-tab active">Reports</div>
+            </a>
+        </div>
+
+        <!-- Page Header -->
+        <div class="analysis-page-header animate-in">
+            <div>
+                <a href="{% url 'view_teacher_reports' teacher.id %}" class="back-link-btn">
+                    <i class="fas fa-arrow-left"></i> Back to Reports
+                </a>
+                <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--text-dark); margin-bottom: 0.35rem;">
+                    Performance Analysis
+                </h1>
+                <p style="color: var(--text-light); font-size: 0.95rem;">
+                    Deep-dive analytics for <strong>{{ teacher.name }}</strong>
+                </p>
+            </div>
+            <div class="teacher-badge">
+                <i class="fas fa-user-tie"></i>
+                {{ teacher.name }} &middot; {{ teacher.get_department_display }}
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <form method="GET" class="filter-bar animate-in delay-1" id="analysisFilterForm">
+            <label><i class="fas fa-calendar-alt" style="margin-right: 4px;"></i> Period</label>
+            <select name="month" onchange="this.form.submit()">
+                {% for m_id, m_name in months %}
+                <option value="{{ m_id }}" {% if selected_month == m_id %}selected{% endif %}>{{ m_name }}</option>
+                {% endfor %}
+            </select>
+            <select name="year" onchange="this.form.submit()">
+                {% for y in years %}
+                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+            <a href="{% url 'teacher_analysis' teacher.id %}" class="reset-btn">
+                <i class="fas fa-sync-alt"></i> Reset
+            </a>
+        </form>
+
+        <!-- Hero Stats -->
+        <div class="hero-stats">
+            <div class="hero-stat animate-in delay-1" style="background: var(--color-peach);">
+                <div class="hero-stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div class="hero-stat-value">{{ total_classes_taken }}<span
+                        style="font-size: 1rem; font-weight: 600; opacity: 0.5;">/{{ scheduled_classes_count }}</span>
+                </div>
+                <div class="hero-stat-label"><i class="fas fa-book"></i> Classes Completed</div>
+            </div>
+            <div class="hero-stat animate-in delay-2" style="background: var(--color-blue);">
+                <div class="hero-stat-icon"><i class="fas fa-percentage"></i></div>
+                <div class="hero-stat-value">{{ consistency }}%</div>
+                <div class="hero-stat-label"><i class="fas fa-chart-line"></i> Consistency Rate</div>
+            </div>
+            <div class="hero-stat animate-in delay-3" style="background: var(--color-purple);">
+                <div class="hero-stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="hero-stat-value">{{ avg_duration_mins }}<span
+                        style="font-size: 0.9rem; font-weight: 600; opacity: 0.5;"> min</span></div>
+                <div class="hero-stat-label"><i class="fas fa-hourglass-half"></i> Avg. Active Duration</div>
+            </div>
+            <div class="hero-stat animate-in delay-4" style="background: var(--color-pink);">
+                <div class="hero-stat-icon"><i class="fas fa-calendar-check"></i></div>
+                <div class="hero-stat-value">{{ attendance_in_period }}<span
+                        style="font-size: 0.9rem; font-weight: 600; opacity: 0.5;">/{{ working_days_in_period }}</span>
+                </div>
+                <div class="hero-stat-label"><i class="fas fa-user-check"></i> Attendance Days</div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="analysis-grid">
+
+            <!-- 1. RISK SCORE GAUGE -->
+            <div class="analysis-card full-span animate-in delay-3" id="riskGaugeCard">
+                <div class="card-title">
+                    <i class="fas fa-tachometer-alt"
+                        style="background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626;"></i>
+                    Risk Score Assessment
+                </div>
+                <div class="gauge-section">
+                    <div class="gauge-wrapper">
+                        <canvas id="gaugeChart"></canvas>
+                        <div class="gauge-center-text">
+                            <div class="gauge-score" style="color: {{ risk_color }};">{{ performance_score }}</div>
+                            <div class="gauge-label">out of 100</div>
+                        </div>
+                    </div>
+                    <div class="gauge-details">
+                        <div class="gauge-category" style="color: {{ risk_color }};">{{ risk_category }}</div>
+                        <div class="gauge-subtitle">
+                            {% if risk_category == 'Reliable' %}Excellent performance — keep up the great work!
+                            {% elif risk_category == 'Needs Attention' %}Some areas need improvement for optimal
+                            performance.
+                            {% else %}Immediate intervention required. Performance is below minimum standards.
+                            {% endif %}
+                        </div>
+                        <div class="risk-factors">
+                            <div class="risk-factor">
+                                <span class="risk-factor-name"><i class="fas fa-percentage" style="color: #4f46e5;"></i>
+                                    Consistency</span>
+                                <span class="risk-factor-value"
+                                    style="color: {% if consistency >= 85 %}#10b981{% elif consistency >= 70 %}#f59e0b{% else %}#ef4444{% endif %};">{{ consistency }}%</span>
+                            </div>
+                            <div class="risk-factor">
+                                <span class="risk-factor-name"><i class="fas fa-check-double"
+                                        style="color: #ec4899;"></i> Completion Rate</span>
+                                <span class="risk-factor-value"
+                                    style="color: {% if completion_rate >= 80 %}#10b981{% elif completion_rate >= 60 %}#f59e0b{% else %}#ef4444{% endif %};">{{completion_rate }}%</span>
+                            </div>
+                            <div class="risk-factor">
+                                <span class="risk-factor-name"><i class="fas fa-clock" style="color: #f59e0b;"></i> Late
+                                    Entries</span>
+                                <span class="risk-factor-value"
+                                    style="color: {% if late_entries_count <= 2 %}#10b981{% elif late_entries_count <= 5 %}#f59e0b{% else %}#ef4444{% endif %};">{{late_entries_count }}</span>
+                            </div>
+                            <div class="risk-factor">
+                                <span class="risk-factor-name"><i class="fas fa-sign-out-alt"
+                                        style="color: #ef4444;"></i> Early Exits</span>
+                                <span class="risk-factor-value"
+                                    style="color: {% if early_exits_count <= 2 %}#10b981{% elif early_exits_count <= 5 %}#f59e0b{% else %}#ef4444{% endif %};">{{early_exits_count }}</span>
+                            </div>
+                            <div class="risk-factor">
+                                <span class="risk-factor-name"><i class="fas fa-bolt" style="color: #8b5cf6;"></i>Interruptions</span>
+                                <span class="risk-factor-value"
+                                    style="color: {% if interruptions_count == 0 %}#10b981{% elif interruptions_count <= 3 %}#f59e0b{% else %}#ef4444{% endif %};">{{interruptions_count }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. WEEKLY HEATMAP -->
+            <div class="analysis-card full-span animate-in delay-4" id="heatmapCard">
+                <div class="card-title">
+                    <i class="fas fa-th"
+                        style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb;"></i>
+                    Weekly Performance Heatmap
+                </div>
+                <div class="heatmap-container">
+                    <table class="heatmap-table" id="heatmapTable">
+                        <!-- Rendered by JS -->
+                    </table>
+                </div>
+                <div class="heatmap-legend">
+                    <span class="heatmap-legend-label">Low</span>
+                    <span class="heatmap-legend-swatch" style="background: #F0F9FF;"></span>
+                    <span class="heatmap-legend-swatch" style="background: #BAE6FD;"></span>
+                    <span class="heatmap-legend-swatch" style="background: #38BDF8;"></span>
+                    <span class="heatmap-legend-swatch" style="background: #0284C7;"></span>
+                    <span class="heatmap-legend-swatch" style="background: #075985;"></span>
+                    <span class="heatmap-legend-label">High</span>
+                </div>
+            </div>
+
+            <!-- 3. RADAR CHART -->
+            <div class="analysis-card animate-in delay-5">
+                <div class="card-title">
+                    <i class="fas fa-spider"
+                        style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #7c3aed;"></i>
+                    Performance Radar
+                </div>
+                <div class="chart-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 4. PUNCTUALITY DOUGHNUT -->
+            <div class="analysis-card animate-in delay-5">
+                <div class="card-title">
+                    <i class="fas fa-user-clock"
+                        style="background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706;"></i>
+                    Punctuality Breakdown
+                </div>
+                <div class="chart-container">
+                    <canvas id="punctualityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 5. MONTHLY TREND -->
+            <div class="analysis-card full-span animate-in delay-6">
+                <div class="card-title">
+                    <i class="fas fa-chart-area"
+                        style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #059669;"></i>
+                    Monthly Consistency Trend (Last 6 Months)
+                </div>
+                <div class="chart-container">
+                    <canvas id="monthlyTrendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 6. CLASS-WISE PERFORMANCE -->
+            <div class="analysis-card full-span animate-in delay-7">
+                <div class="card-title">
+                    <i class="fas fa-layer-group"
+                        style="background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #db2777;"></i>
+                    Class-wise Performance (Active vs Scheduled Minutes)
+                </div>
+                <div class="chart-container">
+                    <canvas id="classwiseChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ── Global Chart Config ──
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = '#6b7280';
+
+        // ════════════════════════════════════════════
+        // 1. RISK SCORE GAUGE (Doughnut)
+        // ════════════════════════════════════════════
+        const performanceScore = {{ performance_score }};
+        const riskColor = '{{ risk_color }}';
+
+        new Chart(document.getElementById('gaugeChart'), {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [performanceScore, 100 - performanceScore],
+                    backgroundColor: [riskColor, '#F3F4F6'],
+                    borderWidth: 0,
+                    borderRadius: 8,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '78%',
+                rotation: -90,
+                circumference: 180,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false }
+                },
+                animation: {
+                    animateRotate: true,
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+
+        // ════════════════════════════════════════════
+        // 2. WEEKLY HEATMAP (Custom HTML/CSS)
+        // ════════════════════════════════════════════
+        const heatmapData = {{ heatmap_data| safe }};
+        const heatmapDays = {{ heatmap_days| safe }};
+        const heatmapSlots = {{ heatmap_slots| safe }};
+
+        function getHeatColor(value, maxVal) {
+            if (maxVal === 0) return { bg: '#F9FAFB', text: '#D1D5DB' };
+            const ratio = value / maxVal;
+            if (value === 0) return { bg: '#F9FAFB', text: '#D1D5DB' };
+            if (ratio < 0.2) return { bg: '#F0F9FF', text: '#0369A1' };
+            if (ratio < 0.4) return { bg: '#BAE6FD', text: '#0369A1' };
+            if (ratio < 0.6) return { bg: '#38BDF8', text: '#FFFFFF' };
+            if (ratio < 0.8) return { bg: '#0284C7', text: '#FFFFFF' };
+            return { bg: '#075985', text: '#FFFFFF' };
+        }
+
+        const maxHeatVal = Math.max(...heatmapData.flat(), 1);
+        const table = document.getElementById('heatmapTable');
+        let html = '<thead><tr><th></th>';
+        heatmapSlots.forEach(s => { html += `<th>${s}</th>`; });
+        html += '</tr></thead><tbody>';
+
+        heatmapData.forEach((row, i) => {
+            html += `<tr><td class="day-label">${heatmapDays[i]}</td>`;
+            row.forEach(val => {
+                const colors = getHeatColor(val, maxHeatVal);
+                html += `<td class="heatmap-cell" style="background:${colors.bg}; color:${colors.text};" title="${val} min">${val > 0 ? val.toFixed(0) : '—'}</td>`;
+            });
+            html += '</tr>';
+        });
+        html += '</tbody>';
+        table.innerHTML = html;
+
+        // ════════════════════════════════════════════
+        // 3. RADAR CHART
+        // ════════════════════════════════════════════
+        new Chart(document.getElementById('radarChart'), {
+            type: 'radar',
+            data: {
+                labels: {{ radar_labels| safe }},
+            datasets: [{
+                label: '{{ teacher.name }}',
+                data: {{ radar_data| safe }},
+            backgroundColor: 'rgba(124, 58, 237, 0.15)',
+            borderColor: '#7c3aed',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#7c3aed',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+                }]
+            },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        stepSize: 20,
+                        font: { size: 10 },
+                        backdropColor: 'transparent'
+                    },
+                    grid: {
+                        color: 'rgba(107, 114, 128, 0.08)'
+                    },
+                    pointLabels: {
+                        font: { size: 12, weight: '600' },
+                        color: '#374151'
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeOutQuart'
+            }
+        }
+        });
+
+        // ════════════════════════════════════════════
+        // 4. PUNCTUALITY DOUGHNUT
+        // ════════════════════════════════════════════
+        new Chart(document.getElementById('punctualityChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ punctuality_labels| safe }},
+            datasets: [{
+                data: {{ punctuality_data| safe }},
+            backgroundColor: ['#10b981', '#f59e0b'],
+            borderWidth: 0,
+            borderRadius: 6,
+                }]
+            },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: { size: 13, weight: '600' }
+                    }
+                }
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeOutQuart'
+            }
+        }
+        });
+
+        // ════════════════════════════════════════════
+        // 5. MONTHLY TREND (Area Line Chart)
+        // ════════════════════════════════════════════
+        const mtCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+        const mtGradient = mtCtx.createLinearGradient(0, 0, 0, 320);
+        mtGradient.addColorStop(0, 'rgba(5, 150, 105, 0.2)');
+        mtGradient.addColorStop(1, 'rgba(5, 150, 105, 0)');
+
+        new Chart(mtCtx, {
+            type: 'line',
+            data: {
+                labels: {{ monthly_trend_labels| safe }},
+            datasets: [{
+                label: 'Consistency %',
+                data: {{ monthly_trend_data| safe }},
+            borderColor: '#059669',
+            backgroundColor: mtGradient,
+            fill: true,
+            tension: 0.45,
+            pointRadius: 5,
+            pointBackgroundColor: '#059669',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2.5,
+            pointHoverRadius: 8,
+            borderWidth: 3,
+                }]
+            },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: v => v + '%',
+                        font: { weight: '600' }
+                    },
+                    grid: { color: 'rgba(0,0,0,0.04)' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { weight: '600' } }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            animation: {
+                duration: 1500,
+                easing: 'easeOutQuart'
+            }
+        }
+        });
+
+        // ════════════════════════════════════════════
+        // 6. CLASS-WISE PERFORMANCE (Grouped Bar)
+        // ════════════════════════════════════════════
+        new Chart(document.getElementById('classwiseChart'), {
+            type: 'bar',
+            data: {
+                labels: {{ classwise_labels| safe }},
+            datasets: [
+            {
+                label: 'Active (min)',
+                data: {{ classwise_active| safe }},
+            backgroundColor: '#4f46e5',
+            borderRadius: 6,
+                    },
+            {
+                label: 'Scheduled (min)',
+                data: {{ classwise_scheduled| safe }},
+            backgroundColor: '#E0E7FF',
+            borderRadius: 6,
+                    }
+        ]
+            },
+            options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: v => v + ' min',
+                        font: { weight: '600' }
+                    },
+                    grid: { color: 'rgba(0,0,0,0.04)' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { weight: '600' } }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true,
+                        font: { size: 12, weight: '600' }
+                    }
+                }
+            },
+            animation: {
+                duration: 1200,
+                easing: 'easeOutQuart'
+            }
+        }
+        });
+    </script>
+</body>
+
+</html>

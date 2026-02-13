@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports - {{ teacher.name }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
         rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -134,130 +135,138 @@
                 <h1>Attendance Report: {{ teacher.name }}</h1>
                 <p style="color: var(--text-light);">{{ teacher.department }} Department</p>
             </div>
-            <button onclick="window.print()" class="btn-secondary-theme">
-                <i class="fas fa-print"></i> Print Report
-            </button>
-        </div>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <a href="{% url 'teacher_analysis' teacher.id %}" class="btn-pill"
+                    style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; text-decoration: none; padding: 0.6rem 1.25rem;">
+                    <i class="fas fa-chart-pie"></i> Deep Analysis
+                </a>
+                <button onclick="window.print()" class="btn-secondary-theme">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+            </div>
 
-        <div class="report-section">
-            <!-- Filters -->
-            <div class="content-card filter-section">
-                <form id="filterForm" method="GET" class="filter-grid">
-                    <div>
-                        <label
-                            style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Month
-                            & Year</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <select name="month" class="input-field" onchange="this.form.submit()">
-                                <option value="">Month</option>
-                                {% for m_id, m_name in months %}
-                                <option value="{{ m_id }}" {% if selected_month==m_id %}selected{% endif %}>{{ m_name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                            <select name="year" class="input-field" onchange="this.form.submit()">
-                                <option value="">Year</option>
-                                {% for y in years %}
-                                <option value="{{ y }}" {% if selected_year==y %}selected{% endif %}>{{ y }}</option>
-                                {% endfor %}
-                            </select>
+            <div class="report-section">
+                <!-- Filters -->
+                <div class="content-card filter-section">
+                    <form id="filterForm" method="GET" class="filter-grid">
+                        <div>
+                            <label
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Month
+                                & Year</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <select name="month" class="input-field" onchange="this.form.submit()">
+                                    <option value="">Month</option>
+                                    {% for m_id, m_name in months %}
+                                    <option value="{{ m_id }}" {% if selected_month==m_id %}selected{% endif %}>{{
+                                        m_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <select name="year" class="input-field" onchange="this.form.submit()">
+                                    <option value="">Year</option>
+                                    {% for y in years %}
+                                    <option value="{{ y }}" {% if selected_year==y %}selected{% endif %}>{{ y }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div>
-                        <label
-                            style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Specific
-                            Date</label>
-                        <input type="date" name="date" class="input-field" value="{{ selected_date|default:'' }}"
-                            onchange="this.form.submit()">
-                    </div>
+                        <div>
+                            <label
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #4B5563;">Specific
+                                Date</label>
+                            <input type="date" name="date" class="input-field" value="{{ selected_date|default:'' }}"
+                                onchange="this.form.submit()">
+                        </div>
 
-                    <div>
-                        <a href="{% url 'view_teacher_reports' teacher.id %}" class="btn-secondary-theme"
-                            style="width: 100%; justify-content: center; text-decoration: none;">
-                            <i class="fas fa-redo-alt"></i> Reset
-                        </a>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Report Table -->
-            <div class="content-card">
-                <div class="card-header">
-                    <h2>Completed Sessions</h2>
+                        <div>
+                            <a href="{% url 'view_teacher_reports' teacher.id %}" class="btn-secondary-theme"
+                                style="width: 100%; justify-content: center; text-decoration: none;">
+                                <i class="fas fa-redo-alt"></i> Reset
+                            </a>
+                        </div>
+                    </form>
                 </div>
 
-                {% if class_history %}
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Subject</th>
-                                <th>Schedule</th>
-                                <th>Active Duration</th>
-                                <th>Entries</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for session in class_history %}
-                            <tr>
-                                <td>
-                                    <div style="font-weight: 600; color: #1F2937;">{{
-                                        session.timetable.subject|default:"Extra Class" }}</div>
-                                    <div style="font-size: 0.85rem; color: #9CA3AF;">{{ session.start_time|date:"M d, Y"
-                                        }}</div>
-                                </td>
-                                <td>
-                                    {% if session.timetable %}
-                                    <div style="font-family: monospace; font-size: 0.9rem; color: #4B5563;">
-                                        {{ session.timetable.start_time|time:"h:i A" }} - {{
-                                        session.timetable.end_time|time:"h:i A" }}
-                                    </div>
-                                    {% else %}
-                                    <span style="font-style: italic; color: #9CA3AF;">Unscheduled</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if session.is_low_attendance %}
-                                    <div class="status-badge danger">
-                                        <i class="fas fa-exclamation-triangle"></i>
-                                        {{ session.total_active_duration }}
-                                    </div>
-                                    {% else %}
-                                    <div class="status-badge success">
-                                        <i class="fas fa-clock"></i>
-                                        {{ session.total_active_duration }}
-                                    </div>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem; color: #4B5563;">
-                                        <i class="fas fa-sign-in-alt"></i>
-                                        <strong>{{ session.monitoring_resumption_count }}</strong>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="status-badge success">Completed</span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div style="text-align: center; padding: 4rem 2rem; color: #9CA3AF;">
-                    <div
-                        style="background: #F3F4F6; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                        <i class="fas fa-clipboard-list" style="font-size: 2rem; opacity: 0.5;"></i>
+                <!-- Report Table -->
+                <div class="content-card">
+                    <div class="card-header">
+                        <h2>Completed Sessions</h2>
                     </div>
-                    <h3 style="color: #374151; font-size: 1.1rem; margin-bottom: 0.5rem;">No Data Found</h3>
-                    <p>No completed class sessions found for the selected period.</p>
+
+                    {% if class_history %}
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Schedule</th>
+                                    <th>Active Duration</th>
+                                    <th>Entries</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in class_history %}
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 600; color: #1F2937;">{{
+                                            session.timetable.subject|default:"Extra Class" }}</div>
+                                        <div style="font-size: 0.85rem; color: #9CA3AF;">{{ session.start_time|date:"M
+                                            d, Y"
+                                            }}</div>
+                                    </td>
+                                    <td>
+                                        {% if session.timetable %}
+                                        <div style="font-family: monospace; font-size: 0.9rem; color: #4B5563;">
+                                            {{ session.timetable.start_time|time:"h:i A" }} - {{
+                                            session.timetable.end_time|time:"h:i A" }}
+                                        </div>
+                                        {% else %}
+                                        <span style="font-style: italic; color: #9CA3AF;">Unscheduled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if session.is_low_attendance %}
+                                        <div class="status-badge danger">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {{ session.total_active_duration }}
+                                        </div>
+                                        {% else %}
+                                        <div class="status-badge success">
+                                            <i class="fas fa-clock"></i>
+                                            {{ session.total_active_duration }}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; color: #4B5563;">
+                                            <i class="fas fa-sign-in-alt"></i>
+                                            <strong>{{ session.monitoring_resumption_count }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge success">Completed</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 4rem 2rem; color: #9CA3AF;">
+                        <div
+                            style="background: #F3F4F6; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                            <i class="fas fa-clipboard-list" style="font-size: 2rem; opacity: 0.5;"></i>
+                        </div>
+                        <h3 style="color: #374151; font-size: 1.1rem; margin-bottom: 0.5rem;">No Data Found</h3>
+                        <p>No completed class sessions found for the selected period.</p>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
-    </div>
 </body>
 
 </html>

@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
         rel="stylesheet">
     <style>
         /* Sidebar/Layout integration with shared style.css */
@@ -652,7 +653,7 @@
                                 <div style="display: flex; gap: 10px; align-items: center;">
                                     <span class="badge-tag badge-blue">Active</span>
 
-                                    <a href="{% url 'view_teacher_reports' teacher.id %}" class="action-circle-btn"
+                                    <a href="{% url 'teacher_analysis' teacher.id %}" class="action-circle-btn"
                                         title="Reports">
                                         <i class="fas fa-chart-bar"></i>
                                     </a>

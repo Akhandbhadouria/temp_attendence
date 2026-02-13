@@ -1118,3 +1118,330 @@ def teacher_help(request):
         return render(request, 'teacher_help.html', {'teacher': teacher})
     except:
         return redirect('home')
+
+@login_required
+def teacher_analysis(request, teacher_id):
+    """Comprehensive per-teacher analysis with Risk Gauge, Heatmap, and more."""
+    try:
+        import json
+        from django.utils import timezone as tz
+        from django.db.models import F, Sum, Count, Q
+
+        principal = request.user.principal
+        teacher = Teacher.objects.get(id=teacher_id, principal=principal)
+
+        now = tz.now()
+        # Filter params
+        selected_month = request.GET.get('month')
+        selected_year = request.GET.get('year')
+
+        if selected_month and selected_year:
+            month = int(selected_month)
+            year = int(selected_year)
+        else:
+            month = now.month
+            year = now.year
+            selected_month = str(month)
+            selected_year = str(year)
+
+        start_date = tz.make_aware(datetime.datetime(year, month, 1))
+        if month == 12:
+            end_date = tz.make_aware(datetime.datetime(year + 1, 1, 1))
+        else:
+            end_date = tz.make_aware(datetime.datetime(year, month + 1, 1))
+
+        day_map_idx = {'MON': 0, 'TUE': 1, 'WED': 2, 'THU': 3, 'FRI': 4, 'SAT': 5, 'SUN': 6}
+        dept_map = dict(Teacher.DEPARTMENT_CHOICES)
+
+        sessions = ClassSession.objects.filter(
+            teacher=teacher,
+            start_time__gte=start_date,
+            start_time__lt=end_date
+        )
+        completed_sessions = sessions.filter(status='Completed')
+
+        # ──────────────────────────────────────────────
+        # 1. RISK SCORE GAUGE
+        # ──────────────────────────────────────────────
+        total_scheduled_minutes = 0
+        total_active_minutes = 0
+        late_entries_count = 0
+        early_exits_count = 0
+        interruptions_count = 0
+
+        for session in sessions:
+            if session.timetable:
+                s_start = session.timetable.start_time
+                s_end = session.timetable.end_time
+
+                if session.status == 'Completed' and session.total_active_duration:
+                    total_active_minutes += session.total_active_duration.total_seconds() / 60
+
+                d_start = datetime.datetime.combine(datetime.date.today(), s_start)
+                d_end = datetime.datetime.combine(datetime.date.today(), s_end)
+                total_scheduled_minutes += (d_end - d_start).total_seconds() / 60
+
+                a_start = session.start_time.astimezone(tz.get_current_timezone()).time()
+                if (a_start.hour * 60 + a_start.minute) > (s_start.hour * 60 + s_start.minute + 5):
+                    late_entries_count += 1
+
+                if session.end_time:
+                    a_end = session.end_time.astimezone(tz.get_current_timezone()).time()
+                    if (a_end.hour * 60 + a_end.minute) < (s_end.hour * 60 + s_end.minute):
+                        early_exits_count += 1
+
+            if session.monitoring_resumption_count > 1:
+                interruptions_count += (session.monitoring_resumption_count - 1)
+
+        consistency = 0
+        if total_scheduled_minutes > 0:
+            consistency = round((total_active_minutes / total_scheduled_minutes) * 100, 1)
+
+        # Scheduled classes count
+        scheduled_classes_count = 0
+        timetables = teacher.timetables.all()
+        temp_date = start_date.date()
+        loop_end = end_date.date()
+        while temp_date < loop_end:
+            for tt in timetables:
+                if temp_date.weekday() == day_map_idx.get(tt.day):
+                    scheduled_classes_count += 1
+            temp_date += datetime.timedelta(days=1)
+
+        actual_completed = completed_sessions.count()
+        completion_rate = 0
+        if scheduled_classes_count > 0:
+            completion_rate = round((actual_completed / scheduled_classes_count) * 100, 1)
+
+        # Risk score calculation (same as CSV export)
+        risk_score = 0
+        if consistency < 75:
+            risk_score += 3
+        elif 75 <= consistency <= 85:
+            risk_score += 2
+        if early_exits_count > 3:
+            risk_score += 2
+        if late_entries_count > 3:
+            risk_score += 1
+        if interruptions_count > 0:
+            risk_score += 2
+        if completion_rate < 80:
+            risk_score += 2
+
+        max_risk = 10
+        # Performance score: inverse of risk (higher = better)
+        performance_score = max(0, round(100 - (risk_score / max_risk) * 100))
+
+        if performance_score >= 75:
+            risk_category = 'Reliable'
+            risk_color = '#10b981'
+        elif performance_score >= 45:
+            risk_category = 'Needs Attention'
+            risk_color = '#f59e0b'
+        else:
+            risk_category = 'Defaulter'
+            risk_color = '#ef4444'
+
+        # ──────────────────────────────────────────────
+        # 2. WEEKLY PERFORMANCE HEATMAP
+        # ──────────────────────────────────────────────
+        days_order = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+        days_display = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+        # Time slots: 8AM-6PM in 1-hour blocks
+        time_slots = []
+        for h in range(8, 18):
+            time_slots.append(f"{h:02d}:00")
+
+        # Build heatmap_data: rows=days, cols=time_slots, value=active minutes
+        heatmap_data = []
+        for day_code in days_order:
+            row = []
+            for slot_idx, slot in enumerate(time_slots):
+                slot_start_hour = 8 + slot_idx
+                slot_end_hour = slot_start_hour + 1
+
+                total_mins = 0
+                for session in completed_sessions:
+                    if session.timetable and session.timetable.day == day_code:
+                        if session.total_active_duration:
+                            # Check if session overlaps this time slot
+                            tt_start_h = session.timetable.start_time.hour
+                            tt_end_h = session.timetable.end_time.hour
+                            if session.timetable.end_time.minute > 0:
+                                tt_end_h += 1
+
+                            if tt_start_h < slot_end_hour and tt_end_h > slot_start_hour:
+                                # Distribute active time proportionally
+                                tt_total_slots = max(1, tt_end_h - tt_start_h)
+                                active_mins = session.total_active_duration.total_seconds() / 60
+                                total_mins += active_mins / tt_total_slots
+
+                row.append(round(total_mins, 1))
+            heatmap_data.append(row)
+
+        # ──────────────────────────────────────────────
+        # 3. ATTENDANCE CONSISTENCY RADAR
+        # ──────────────────────────────────────────────
+        # Dimensions: Punctuality, Duration, Completion, Regularity, Focus
+        punctuality_score = max(0, 100 - (late_entries_count * 15)) if scheduled_classes_count > 0 else 0
+        duration_score = min(100, consistency)
+        completion_score = min(100, completion_rate)
+        
+        # Regularity: attendance frequency
+        attendance_in_period = TeacherAttendance.objects.filter(
+            teacher=teacher,
+            date__gte=start_date.date(),
+            date__lt=end_date.date()
+        ).count()
+        working_days_in_period = 0
+        temp_date = start_date.date()
+        while temp_date < end_date.date():
+            if temp_date.weekday() < 6:
+                working_days_in_period += 1
+            temp_date += datetime.timedelta(days=1)
+        regularity_score = min(100, round((attendance_in_period / max(1, working_days_in_period)) * 100))
+        
+        # Focus: lower interruptions = better
+        focus_score = max(0, 100 - (interruptions_count * 20))
+
+        radar_labels = ['Punctuality', 'Duration', 'Completion', 'Regularity', 'Focus']
+        radar_data = [punctuality_score, duration_score, completion_score, regularity_score, focus_score]
+
+        # ──────────────────────────────────────────────
+        # 4. MONTHLY TREND (last 6 months)
+        # ──────────────────────────────────────────────
+        monthly_trend_labels = []
+        monthly_trend_data = []
+        for i in range(5, -1, -1):
+            m = month - i
+            y = year
+            while m <= 0:
+                m += 12
+                y -= 1
+            m_start = tz.make_aware(datetime.datetime(y, m, 1))
+            if m == 12:
+                m_end = tz.make_aware(datetime.datetime(y + 1, 1, 1))
+            else:
+                m_end = tz.make_aware(datetime.datetime(y, m + 1, 1))
+
+            m_sessions = ClassSession.objects.filter(
+                teacher=teacher,
+                status='Completed',
+                start_time__gte=m_start,
+                start_time__lt=m_end
+            )
+            m_total_active = 0
+            m_total_sched = 0
+            for s in m_sessions:
+                if s.timetable and s.total_active_duration:
+                    m_total_active += s.total_active_duration.total_seconds() / 60
+                    d_s = datetime.datetime.combine(datetime.date.today(), s.timetable.start_time)
+                    d_e = datetime.datetime.combine(datetime.date.today(), s.timetable.end_time)
+                    m_total_sched += (d_e - d_s).total_seconds() / 60
+
+            m_consistency = round((m_total_active / m_total_sched) * 100, 1) if m_total_sched > 0 else 0
+            month_name = datetime.date(y, m, 1).strftime('%b %Y')
+            monthly_trend_labels.append(month_name)
+            monthly_trend_data.append(min(100, m_consistency))
+
+        # ──────────────────────────────────────────────
+        # 5. CLASS-WISE PERFORMANCE (per subject)
+        # ──────────────────────────────────────────────
+        subject_stats = {}
+        for session in completed_sessions:
+            if session.timetable:
+                subj = session.timetable.subject
+                if subj not in subject_stats:
+                    subject_stats[subj] = {'active': 0, 'scheduled': 0, 'count': 0}
+                subject_stats[subj]['count'] += 1
+                if session.total_active_duration:
+                    subject_stats[subj]['active'] += session.total_active_duration.total_seconds() / 60
+                d_s = datetime.datetime.combine(datetime.date.today(), session.timetable.start_time)
+                d_e = datetime.datetime.combine(datetime.date.today(), session.timetable.end_time)
+                subject_stats[subj]['scheduled'] += (d_e - d_s).total_seconds() / 60
+
+        classwise_labels = list(subject_stats.keys())
+        classwise_active = [round(v['active'], 1) for v in subject_stats.values()]
+        classwise_scheduled = [round(v['scheduled'], 1) for v in subject_stats.values()]
+
+        # ──────────────────────────────────────────────
+        # 6. PUNCTUALITY DOUGHNUT
+        # ──────────────────────────────────────────────
+        on_time_count = 0
+        late_count = 0
+        for session in sessions:
+            if session.timetable:
+                s_start = session.timetable.start_time
+                a_start = session.start_time.astimezone(tz.get_current_timezone()).time()
+                if (a_start.hour * 60 + a_start.minute) > (s_start.hour * 60 + s_start.minute + 5):
+                    late_count += 1
+                else:
+                    on_time_count += 1
+
+        punctuality_labels = ['On Time', 'Late Entry']
+        punctuality_data = [on_time_count, late_count]
+
+        # ──────────────────────────────────────────────
+        # 7. SUMMARY STATS CARDS
+        # ──────────────────────────────────────────────
+        total_classes_taken = actual_completed
+        avg_duration_mins = round(total_active_minutes / max(1, actual_completed), 1) if actual_completed > 0 else 0
+
+        # Years / Months for filter
+        years = range(now.year - 2, now.year + 1)
+        months_list = [
+            (1, 'January'), (2, 'February'), (3, 'March'), (4, 'April'),
+            (5, 'May'), (6, 'June'), (7, 'July'), (8, 'August'),
+            (9, 'September'), (10, 'October'), (11, 'November'), (12, 'December')
+        ]
+
+        context = {
+            'teacher': teacher,
+            # Gauge
+            'performance_score': performance_score,
+            'risk_category': risk_category,
+            'risk_color': risk_color,
+            'risk_score': risk_score,
+            # Stats
+            'consistency': consistency,
+            'completion_rate': completion_rate,
+            'total_classes_taken': total_classes_taken,
+            'scheduled_classes_count': scheduled_classes_count,
+            'late_entries_count': late_entries_count,
+            'early_exits_count': early_exits_count,
+            'interruptions_count': interruptions_count,
+            'avg_duration_mins': avg_duration_mins,
+            'total_active_minutes': round(total_active_minutes, 1),
+            'attendance_in_period': attendance_in_period,
+            'working_days_in_period': working_days_in_period,
+            # Heatmap
+            'heatmap_data': json.dumps(heatmap_data),
+            'heatmap_days': json.dumps(days_display),
+            'heatmap_slots': json.dumps(time_slots),
+            # Radar
+            'radar_labels': json.dumps(radar_labels),
+            'radar_data': json.dumps(radar_data),
+            # Monthly Trend
+            'monthly_trend_labels': json.dumps(monthly_trend_labels),
+            'monthly_trend_data': json.dumps(monthly_trend_data),
+            # Class-wise
+            'classwise_labels': json.dumps(classwise_labels),
+            'classwise_active': json.dumps(classwise_active),
+            'classwise_scheduled': json.dumps(classwise_scheduled),
+            # Punctuality
+            'punctuality_labels': json.dumps(punctuality_labels),
+            'punctuality_data': json.dumps(punctuality_data),
+            # Filters
+            'selected_month': int(selected_month),
+            'selected_year': int(selected_year),
+            'years': years,
+            'months': months_list,
+        }
+        return render(request, 'teacher_analysis.html', context)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        messages.error(request, f"Error loading teacher analysis: {str(e)}")
+        return redirect('principal_dashboard')
