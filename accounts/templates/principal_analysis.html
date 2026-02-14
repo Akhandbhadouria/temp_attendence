@@ -8,7 +8,7 @@
     <title>Performance Analysis - Principal Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
-        
+
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/admin_theme.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -46,7 +46,7 @@
                 <br>
             </div>
         </div>
-<br><br>
+        <br><br>
         <!-- Filter Slicers Section -->
         <div class="content-card">
             <div class="card-header">
@@ -111,14 +111,14 @@
                 </div>
             </div>
 
-            <!-- 2. Total Teaching Time -->
+            <!-- 2. Department-wise Performance Index -->
             <div class="content-card">
                 <div class="card-header">
-                    <h2><i class="fas fa-hourglass-half" style="margin-right: 8px; color: #10b981;"></i> Teaching Time
-                        (Min)</h2>
+                    <h2><i class="fas fa-ranking-star" style="margin-right: 8px; color: #10b981;"></i> Dept. Performance
+                        Index</h2>
                 </div>
                 <div class="chart-wrapper">
-                    <canvas id="teachingTimeChart"></canvas>
+                    <canvas id="deptPerfChart"></canvas>
                 </div>
             </div>
 
@@ -144,14 +144,14 @@
                 </div>
             </div>
 
-            <!-- 5. Late Entry and Early Exit Frequency -->
+            <!-- 5. Department Discipline Heatmap -->
             <div class="content-card">
                 <div class="card-header">
-                    <h2><i class="fas fa-user-clock" style="margin-right: 8px; color: #ef4444;"></i> Discipline
-                        Frequency</h2>
+                    <h2><i class="fas fa-fire" style="margin-right: 8px; color: #ef4444;"></i> Dept. Discipline Heatmap
+                    </h2>
                 </div>
                 <div class="chart-wrapper">
-                    <canvas id="disciplineChart"></canvas>
+                    <canvas id="disciplineHeatmap"></canvas>
                 </div>
             </div>
 
@@ -198,10 +198,10 @@
         new Chart(document.getElementById('consistencyChart'), {
             type: 'bar',
             data: {
-                labels: {{ consistency_labels|default:"[]"|safe }},
+                labels: {{ consistency_labels|default:"[]" | safe }},
             datasets: [{
                 label: 'Consistency %',
-                data: {{ consistency_data|default:"[]"|safe }},
+                data: {{ consistency_data|default:"[]" | safe }},
             backgroundColor: '#4f46e5',
             borderRadius: 6
                 }]
@@ -214,21 +214,38 @@
         }
         });
 
-        // 2. Teaching Time Chart (Bar)
-        new Chart(document.getElementById('teachingTimeChart'), {
+        // 2. Department-wise Performance Index (Grouped Bar)
+        new Chart(document.getElementById('deptPerfChart'), {
             type: 'bar',
             data: {
-                labels: {{ teaching_time_labels|default:"[]"|safe }},
-            datasets: [{
-                label: 'Minutes',
-                data: {{ teaching_time_data|default:"[]"|safe }},
+                labels: {{ dept_perf_labels|default:"[]" | safe }},
+            datasets: [
+            {
+                label: 'Avg Consistency %',
+                data: {{ dept_perf_avg_consistency|default:"[]" | safe }},
+            backgroundColor: '#6366f1',
+            borderRadius: 4
+                },
+            {
+                label: 'Avg Completion %',
+                data: {{ dept_perf_avg_completion|default:"[]" | safe }},
+            backgroundColor: '#f59e0b',
+            borderRadius: 4
+                },
+            {
+                label: 'Performance Index',
+                data: {{ dept_perf_index|default:"[]" | safe }},
             backgroundColor: '#10b981',
-            borderRadius: 6
-                }]
+            borderRadius: 4
+                }
+        ]
             },
             options: {
             ...commonOptions,
-            scales: { y: { beginAtZero: true } }
+            scales: {
+                x: { stacked: false },
+                y: { beginAtZero: true, max: 100, ticks: { callback: value => value + '%' } }
+            }
         }
         });
 
@@ -236,10 +253,10 @@
         new Chart(document.getElementById('dailyTrendChart'), {
             type: 'line',
             data: {
-                labels: {{ daily_trend_labels|default:"[]"|safe }},
+                labels: {{ daily_trend_labels|default:"[]" | safe }},
             datasets: [{
                 label: 'Teachers Present',
-                data: {{ daily_trend_data|default:"[]"|safe }},
+                data: {{ daily_trend_data|default:"[]" | safe }},
             borderColor: '#8b5cf6',
             backgroundColor: 'rgba(139, 92, 246, 0.1)',
             fill: true,
@@ -259,9 +276,9 @@
         new Chart(document.getElementById('deptPresenceChart'), {
             type: 'doughnut',
             data: {
-                labels: {{ dept_presence_labels|default:"[]"|safe }},
+                labels: {{ dept_presence_labels|default:"[]" | safe }},
             datasets: [{
-                data: {{ dept_presence_data|default:"[]"|safe }},
+                data: {{ dept_presence_data|default:"[]" | safe }},
             backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'],
             borderWidth: 0
                 }]
@@ -272,47 +289,77 @@
         }
         });
 
-        // 5. Discipline Chart (Grouped Bar)
-        new Chart(document.getElementById('disciplineChart'), {
+        // 5. Discipline Heatmap (Grouped Bar with value-based colors)
+        const heatmapWeeks = {{ heatmap_weeks|default:"[]" | safe }};
+        const deptDisciplineRaw = {{ dept_week_discipline|default:"{}" | safe }};
+        const deptsForHeatmap = Object.keys(deptDisciplineRaw);
+
+        const heatColors = [
+            'rgba(16, 185, 129, 0.2)', // Low (Greenish)
+            'rgba(245, 158, 11, 0.4)', // Medium (Amber)
+            'rgba(239, 68, 68, 0.6)',  // High (Red)
+            'rgba(239, 68, 68, 0.9)'   // Critical (Deep Red)
+        ];
+
+        const getHeatColor = (val) => {
+            if (val === 0) return 'rgba(243, 244, 246, 0.5)';
+            if (val <= 2) return heatColors[0];
+            if (val <= 5) return heatColors[1];
+            if (val <= 10) return heatColors[2];
+            return heatColors[3];
+        };
+
+        const heatmapDatasets = heatmapWeeks.map((week, wIdx) => {
+            const data = deptsForHeatmap.map(dept => deptDisciplineRaw[dept][week] || 0);
+            return {
+                label: week,
+                data: data,
+                backgroundColor: data.map(v => getHeatColor(v)),
+                borderRadius: 4,
+                borderWidth: 1,
+                borderColor: 'rgba(255, 255, 255, 0.5)'
+            };
+        });
+
+        new Chart(document.getElementById('disciplineHeatmap'), {
             type: 'bar',
             data: {
-                labels: {{ discipline_labels|default:"[]"|safe }},
-            datasets: [
-            {
-                label: 'Late Entries',
-                data: {{ late_entries|default:"[]"|safe }},
-            backgroundColor: '#f59e0b',
-            borderRadius: 4
-                    },
-            {
-                label: 'Early Exits',
-                data: {{ early_exits|default:"[]"|safe }},
-            backgroundColor: '#ef4444',
-            borderRadius: 4
-                    }
-        ]
+                labels: deptsForHeatmap.map(d => d.replace('_', ' ')),
+                datasets: heatmapDatasets
             },
             options: {
-            ...commonOptions,
-            scales: {
-                x: { stacked: false },
-                y: {
-                    stacked: false,
-                    beginAtZero: true,
-                    ticks: { stepSize: 1 }
+                ...commonOptions,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        title: { display: true, text: 'Discipline Violations (Late/Early)' }
+                    },
+                    y: {
+                        stacked: false,
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `${context.dataset.label}: ${context.raw} incidents`
+                        }
+                    }
                 }
             }
-        }
         });
 
         // 6. Completion Rate Chart (Bar)
         new Chart(document.getElementById('completionChart'), {
             type: 'bar',
             data: {
-                labels: {{ completion_labels|default:"[]"|safe }},
+                labels: {{ completion_labels|default:"[]" | safe }},
             datasets: [{
                 label: 'Completion Rate %',
-                data: {{ completion_data|default:"[]"|safe }},
+                data: {{ completion_data|default:"[]" | safe }},
             backgroundColor: '#ec4899',
             borderRadius: 6
                 }]

@@ -394,8 +394,16 @@ def teacher_profile(request):
             if first_class:
                 cutoff_time = first_class.start_time
             
+            # Since TeacherAttendance.time is auto_now_add, it might be UTC 
+            # based on Django settings. We'll use the Date to create a localized check.
+            # However, my previous check showed it stores Local time on some setups.
+            # To be safe, we'll treat it as Local time as per confirmed shell output.
             if attendance_time > cutoff_time:
-                late_count += 1
+                # Add a 10 min grace for daily punch-in too
+                punch_in_mins = attendance_time.hour * 60 + attendance_time.minute
+                cutoff_mins = cutoff_time.hour * 60 + cutoff_time.minute
+                if punch_in_mins > (cutoff_mins + 10):
+                    late_count += 1
 
         # 3. Total Absent (Working days passed - Present days)
         # Assume Mon-Sat are working days
@@ -824,14 +832,22 @@ def principal_analysis(request):
         consistency_labels = []
         consistency_data = []
         
-        # 2. Total Teaching Time (Bar Chart)
-        teaching_time_labels = []
-        teaching_time_data = []
+        # 2. Department-wise Performance Index
+        # We'll collect per-teacher data keyed by department, then aggregate after the loop
+        from collections import defaultdict
+        dept_perf_raw = defaultdict(lambda: {'consistencies': [], 'completions': []})
 
-        # 5. Late Entry and Early Exit (Stacked Bar)
-        discipline_labels = []
-        late_entries = []
-        early_exits = []
+        # 5. Department Discipline Heatmap
+        # We'll group violations (late + early) by Department and Week
+        dept_week_discipline = defaultdict(lambda: defaultdict(int))
+        
+        # Calculate weeks in the range for labels
+        heatmap_weeks = []
+        temp_week_start = start_date
+        while temp_week_start < end_date:
+            week_label = f"Week {len(heatmap_weeks) + 1}"
+            heatmap_weeks.append(week_label)
+            temp_week_start += datetime.timedelta(days=7)
 
         # 6. Class Completion Rate (Bar Chart)
         completion_labels = []
@@ -866,8 +882,8 @@ def principal_analysis(request):
                 consistency_data.append(0)
             consistency_labels.append(teacher.name)
             
-            teaching_time_labels.append(teacher.name)
-            teaching_time_data.append(int(total_active_minutes))
+            # Store per-teacher consistency for department aggregation
+            teacher_consistency = consistency_data[-1]  # last appended value
 
             # --- 5. Discipline Metrics (Late Entries, Early Exits) ---
             l_count = 0
@@ -888,7 +904,6 @@ def principal_analysis(request):
                     if act_start_mins > (sched_start_mins + 5):
                         l_count += 1
                     
-                    # Calculate Early Exit
                     if session.end_time:
                         local_session_end = timezone.localtime(session.end_time)
                         a_end = local_session_end.time()
@@ -900,9 +915,28 @@ def principal_analysis(request):
                         if act_end_mins < sched_end_mins:
                             e_count += 1
             
-            discipline_labels.append(teacher.name)
-            late_entries.append(l_count)
-            early_exits.append(e_count)
+            # Map violations to weeks
+            for session in sessions:
+                # Determine week index
+                days_diff = (session.start_time - start_date).days
+                week_idx = days_diff // 7
+                if 0 <= week_idx < len(heatmap_weeks):
+                    week_label = heatmap_weeks[week_idx]
+                    
+                    # Check for late entry
+                    s_start = session.timetable.start_time
+                    local_session_start = timezone.localtime(session.start_time)
+                    a_start = local_session_start.time()
+                    if (a_start.hour * 60 + a_start.minute) > (s_start.hour * 60 + s_start.minute + 5):
+                        dept_week_discipline[teacher.department][week_label] += 1
+                    
+                    # Check for early exit
+                    if session.end_time:
+                        s_end = session.timetable.end_time
+                        local_session_end = timezone.localtime(session.end_time)
+                        a_end = local_session_end.time()
+                        if (a_end.hour * 60 + a_end.minute) < (s_end.hour * 60 + s_end.minute):
+                            dept_week_discipline[teacher.department][week_label] += 1
 
             # --- 6. Completion Rate ---
             # Calculate scheduled classes in this period
@@ -925,6 +959,26 @@ def principal_analysis(request):
                 # If single day and no classes scheduled, completion might be 0 but avoid dividing by 0
                 completion_data.append(0)
             completion_labels.append(teacher.name)
+
+            # Collect for department aggregation
+            teacher_completion = completion_data[-1]  # last appended value
+            dept_perf_raw[teacher.department]['consistencies'].append(teacher_consistency)
+            dept_perf_raw[teacher.department]['completions'].append(teacher_completion)
+
+        # --- Department-wise Performance Index ---
+        dept_perf_labels = []
+        dept_perf_avg_consistency = []
+        dept_perf_avg_completion = []
+        dept_perf_index = []
+        for dept_code, vals in dept_perf_raw.items():
+            dept_name = dept_map.get(dept_code, dept_code)
+            avg_cons = round(sum(vals['consistencies']) / len(vals['consistencies']), 1) if vals['consistencies'] else 0
+            avg_comp = round(sum(vals['completions']) / len(vals['completions']), 1) if vals['completions'] else 0
+            perf_idx = round(0.6 * avg_cons + 0.4 * avg_comp, 1)
+            dept_perf_labels.append(dept_name)
+            dept_perf_avg_consistency.append(avg_cons)
+            dept_perf_avg_completion.append(avg_comp)
+            dept_perf_index.append(perf_idx)
 
         # 3. Daily Attendance Trend (Line Chart)
         # Always show last 14 days relative to the end of the selected period for context
@@ -969,15 +1023,16 @@ def principal_analysis(request):
         context = {
             'consistency_labels': consistency_labels,
             'consistency_data': consistency_data,
-            'teaching_time_labels': teaching_time_labels,
-            'teaching_time_data': teaching_time_data,
+            'dept_perf_labels': dept_perf_labels,
+            'dept_perf_avg_consistency': dept_perf_avg_consistency,
+            'dept_perf_avg_completion': dept_perf_avg_completion,
+            'dept_perf_index': dept_perf_index,
             'daily_trend_labels': daily_trend_labels,
             'daily_trend_data': daily_trend_data,
             'dept_presence_labels': dept_presence_labels,
             'dept_presence_data': dept_presence_data,
-            'discipline_labels': discipline_labels,
-            'late_entries': late_entries,
-            'early_exits': early_exits,
+            'heatmap_weeks': heatmap_weeks,
+            'dept_week_discipline': dict({dept: dict(weeks) for dept, weeks in dept_week_discipline.items()}),
             'completion_labels': completion_labels,
             'completion_data': completion_data,
             'departments': Teacher.DEPARTMENT_CHOICES,
@@ -1063,13 +1118,24 @@ def export_defaulter_csv(request):
                 d_end = datetime.datetime.combine(datetime.date.today(), s_end)
                 total_scheduled_minutes += (d_end - d_start).total_seconds() / 60
                 
-                a_start = session.start_time.astimezone(timezone.get_current_timezone()).time()
-                if (a_start.hour * 60 + a_start.minute) > (s_start.hour * 60 + s_start.minute + 5):
-                    late_entries += 1
+                # Localize times for robust comparison
+                local_session_start = timezone.localtime(session.start_time)
+                a_start = local_session_start.time()
                 
+                s_start_mins = s_start.hour * 60 + s_start.minute
+                a_start_mins = a_start.hour * 60 + a_start.minute
+
+                if a_start_mins > (s_start_mins + 5):
+                    late_entries += 1
+
                 if session.end_time:
-                    a_end = session.end_time.astimezone(timezone.get_current_timezone()).time()
-                    if (a_end.hour * 60 + a_end.minute) < (s_end.hour * 60 + s_end.minute):
+                    local_session_end = timezone.localtime(session.end_time)
+                    a_end = local_session_end.time()
+                    
+                    s_end_mins = s_end.hour * 60 + s_end.minute
+                    a_end_mins = a_end.hour * 60 + a_end.minute
+                    
+                    if a_end_mins < s_end_mins:
                         early_exits += 1
             
             if session.monitoring_resumption_count > 1:
@@ -1195,13 +1261,24 @@ def teacher_analysis(request, teacher_id):
                 d_end = datetime.datetime.combine(datetime.date.today(), s_end)
                 total_scheduled_minutes += (d_end - d_start).total_seconds() / 60
 
-                a_start = session.start_time.astimezone(tz.get_current_timezone()).time()
-                if (a_start.hour * 60 + a_start.minute) > (s_start.hour * 60 + s_start.minute + 5):
+                # Localize times for robust comparison
+                local_session_start = tz.localtime(session.start_time)
+                a_start = local_session_start.time()
+
+                sched_start_mins = s_start.hour * 60 + s_start.minute
+                act_start_mins = a_start.hour * 60 + a_start.minute
+                
+                if act_start_mins > (sched_start_mins + 5):
                     late_entries_count += 1
 
                 if session.end_time:
-                    a_end = session.end_time.astimezone(tz.get_current_timezone()).time()
-                    if (a_end.hour * 60 + a_end.minute) < (s_end.hour * 60 + s_end.minute):
+                    local_session_end = tz.localtime(session.end_time)
+                    a_end = local_session_end.time()
+                    
+                    sched_end_mins = s_end.hour * 60 + s_end.minute
+                    act_end_mins = a_end.hour * 60 + a_end.minute
+                    
+                    if act_end_mins < sched_end_mins:
                         early_exits_count += 1
 
             if session.monitoring_resumption_count > 1:
@@ -1387,8 +1464,13 @@ def teacher_analysis(request, teacher_id):
         for session in sessions:
             if session.timetable:
                 s_start = session.timetable.start_time
-                a_start = session.start_time.astimezone(tz.get_current_timezone()).time()
-                if (a_start.hour * 60 + a_start.minute) > (s_start.hour * 60 + s_start.minute + 5):
+                local_session_start = tz.localtime(session.start_time)
+                a_start = local_session_start.time()
+                
+                sched_start_mins = s_start.hour * 60 + s_start.minute
+                act_start_mins = a_start.hour * 60 + a_start.minute
+                
+                if act_start_mins > (sched_start_mins + 5):
                     late_count += 1
                 else:
                     on_time_count += 1
