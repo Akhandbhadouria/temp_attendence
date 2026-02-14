@@ -11,6 +11,7 @@
 
     <link rel="stylesheet" href="{% static 'css/teacher_theme.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/teacher_dashboard.css' %}">
 </head>
 
 <body>
@@ -165,20 +166,6 @@
                         }
                     });
                 </script>
-
-                <style>
-                    @keyframes fadeIn {
-                        from {
-                            opacity: 0;
-                            transform: translateY(10px);
-                        }
-
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
-                    }
-                </style>
                 {% else %}
                 <div style="text-align: center; padding: 4rem; color: var(--text-light);">
                     <i class="far fa-calendar-times" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
