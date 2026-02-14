@@ -183,7 +183,7 @@
             <!-- User Profile Card -->
             <div class="user-profile-card">
                 <div class="user-avatar">
-                    <img src="https://ui-avatars.com/api/?name={{ teacher.name }}&background=7b92d4&color=fff&size=120&font-size=0.45"
+                    <img src="https://ui-avatars.com/api/?name={{ teacher.name }}&background=bbd7fc&color=fff&size=120&font-size=0.45"
                         alt="{{ teacher.name }}">
                 </div>
                 <h3>{{ teacher.name }}</h3>
@@ -249,7 +249,7 @@
             </div>
 
             <!-- Help Widget -->
-         
+
         </div>
     </div>
 
@@ -264,7 +264,7 @@
                 labels: ['Present', 'Absent'],
                 datasets: [{
                     data: [attendanceRate, 100 - attendanceRate],
-                    backgroundColor: ['#7b92d4', '#f1f5f9'],
+                    backgroundColor: ['#3b82f6', '#f1f5f9'],
                     borderWidth: 0,
                     hoverOffset: 4
                 }]
@@ -289,7 +289,7 @@
                 datasets: [{
                     label: 'Days',
                     data: [{{ total_present }}, {{ late_attendance }}, {{ undertime }}, {{ total_absent }}],
-            backgroundColor: ['#7b92d4', '#4caf50', '#f59e0b', '#ef5350'],
+            backgroundColor: ['#1e40af', '#3b82f6', '#60a5fa', '#bbd7fc'],
             borderRadius: 12,
             borderSkipped: false,
             barPercentage: 0.7,

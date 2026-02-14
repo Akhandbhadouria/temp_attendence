@@ -76,15 +76,21 @@ def principal_dashboard(request):
     from django.utils import timezone
     from .models import TeacherAttendance
     today = timezone.now().date()
+    
     present_today_count = TeacherAttendance.objects.filter(
         teacher__principal=principal,
         date=today
-    ).count()
+    ).values('teacher').distinct().count()
+    
+    total_teachers = teachers.count()
+    absent_count = total_teachers - present_today_count
+    print(f"DEBUG: Total={total_teachers}, Present={present_today_count}, Absent={absent_count}")
     
     return render(request, 'principal_dashboard.html', {
         'teachers': teachers,
         'teachers_by_dept': teachers_by_dept,
-        'present_today_count': present_today_count
+        'present_today_count': present_today_count,
+        'absent_count': absent_count
     })
 
 def teacher_login_password(request):
@@ -402,7 +408,7 @@ def teacher_profile(request):
         if total_absent < 0: total_absent = 0
 
         # 4. Attendance Rate
-        attendance_rate = 0
+        attendance_rate = 0 
         if valid_workdays > 0:
             attendance_rate = int((total_present / valid_workdays) * 100)
 

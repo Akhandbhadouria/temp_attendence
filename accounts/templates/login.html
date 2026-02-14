@@ -358,6 +358,33 @@
                 padding: 1.5rem;
             }
         }
+
+        /* Back Button */
+        .btn-back {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.2s;
+            z-index: 10;
+        }
+
+        .btn-back:hover {
+            color: var(--primary);
+        }
+
+        @media (max-width: 960px) {
+            .btn-back {
+                position: absolute;
+                top: 1rem;
+                left: 1rem;
+            }
+        }
     </style>
 </head>
 
@@ -375,6 +402,7 @@
 
         <!-- Form Side -->
         <div class="form-side">
+            <a href="/" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
             <div class="form-container">
                 <a href="/" class="brand-logo"><i class="fas fa-cube"></i> ClassAudit AI</a>
                 <h1>Face Login</h1>

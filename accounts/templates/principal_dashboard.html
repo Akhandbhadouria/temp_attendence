@@ -128,7 +128,7 @@
         }
 
         .stat-icon.yellow {
-            background: linear-gradient(135deg, #fef9c3 0%, #fde047 100%);
+            background: linear-gradient(135deg, #fef9c3 0%, #ffefa2 100%);
             color: #a16207;
         }
 
@@ -538,7 +538,6 @@
                     <div class="stats-container">
                         <!-- Total Teachers (Peach) -->
                         <div class="stat-card-new stat-card-peach">
-                            <div class="stat-icon-corner"><i class="fas fa-expand-alt"></i></div>
                             <div>
                                 <div class="stat-label"><i class="fas fa-chalkboard-teacher"></i> Total Faculty</div>
                                 <h3>{{ teachers.count }}</h3>
@@ -548,7 +547,6 @@
 
                         <!-- Departments (Blue) -->
                         <div class="stat-card-new stat-card-blue">
-                            <div class="stat-icon-corner"><i class="fas fa-expand-alt"></i></div>
                             <div>
                                 <div class="stat-label"><i class="fas fa-building"></i> Departments</div>
                                 <h3>{{ teachers_by_dept|length }}</h3>
@@ -558,7 +556,6 @@
 
                         <!-- Present Today (Purple) -->
                         <div class="stat-card-new stat-card-purple">
-                            <div class="stat-icon-corner"><i class="fas fa-expand-alt"></i></div>
                             <div>
                                 <div class="stat-label"><i class="fas fa-check-circle"></i> Present Today</div>
                                 <h3>{{ present_today_count }}</h3>
@@ -568,10 +565,9 @@
 
                         <!-- Absent (Pink) -->
                         <div class="stat-card-new stat-card-pink">
-                            <div class="stat-icon-corner"><i class="fas fa-expand-alt"></i></div>
                             <div>
-                                <div class="stat-label"><i class="fas fa-times-circle"></i> Absent/Late</div>
-                                <h3>--</h3>
+                                <div class="stat-label"><i class="fas fa-times-circle"></i> Absent</div>
+                                <h3>{{ absent_count }}</h3>
                                 <p style="font-size: 0.8rem; opacity: 0.7;">Daily variance</p>
                             </div>
                         </div>

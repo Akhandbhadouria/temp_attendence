@@ -1,10 +1,10 @@
 :root {
     --bg-color: #f5f7fb;
     --sidebar-width: 260px;
-    --primary-blue: #7b92d4;
-    --primary-purple: #8b7fc4;
+    --primary-blue: #a0bce4;
+    --primary-purple: #4987d8;
     --primary-pink: #f09ca0;
-    --text-dark: #3d4e6c;
+    --text-dark: #0f1828;
     --text-light: #9ca6b8;
     --white: #ffffff;
     --border-color: #e8ecf4;
@@ -24,6 +24,85 @@ body {
     display: flex;
     min-height: 100vh;
     color: var(--text-dark);
+    background: linear-gradient(135deg, #bbd7fc 0%, #dfe9f7 100%);
+}
+
+/* Sidebar */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--white);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    border-right: 1px solid var(--border-color);
+    z-index: 100;
+    top: 0;
+    left: 0;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 1rem 0.75rem;
+    margin-bottom: 2rem;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-dark);
+}
+
+.sidebar-brand i {
+    color: var(--primary-blue);
+    font-size: 1.5rem;
+}
+
+.menu-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-light);
+    letter-spacing: 1px;
+    padding: 0.75rem;
+    margin-top: 1rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.875rem 0.75rem;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 0.25rem;
+}
+
+.nav-item:hover {
+    background: #f8fafc;
+    color: var(--primary-blue);
+    transform: translateX(4px);
+}
+
+.nav-item.active {
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(123, 146, 212, 0.3);
+}
+
+.nav-item.active i {
+    color: white;
+}
+
+.nav-item i {
+    width: 24px;
+    text-align: center;
+    font-size: 1.1rem;
+    transition: all 0.2s;
 }
 
 /* Main Content */
@@ -129,13 +208,13 @@ body {
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(123, 146, 212, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(123, 146, 212, 0.4);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 .welcome-illustration {

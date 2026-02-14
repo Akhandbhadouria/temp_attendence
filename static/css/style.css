@@ -4,8 +4,8 @@
 :root {
     --bg-color: #f8fafc;
     --sidebar-width: 260px;
-    --primary-color: #3b82f6;
-    --primary-hover: #2563eb;
+    --primary-color: #87b3fb;
+    --primary-hover: #92aeec;
     --secondary-color: #ec4899;
     --text-dark: #0f172a;
     --text-light: #64748b;
@@ -28,7 +28,6 @@ body {
     background-color: var(--bg-color);
     color: var(--text-dark);
     min-height: 100vh;
-    background: linear-gradient(135deg, #fef9c3 0%, #fde047 100%);
 
 }
 
@@ -67,7 +66,7 @@ body {
     background: none;
     border-radius: 0;
     display: inline;
-    color: var(--primary-color);
+    color: rgb(255, 173, 119);
     font-size: 1.5rem;
     box-shadow: none;
 }
