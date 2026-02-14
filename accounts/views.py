@@ -21,7 +21,15 @@ from django.db.models import Count, Sum, Avg, Q
 from django.db.models.functions import TruncDate
 
 def home(request):
-    return render(request, 'home.html')
+    schools_count = Principal.objects.count()
+    faculty_count = Teacher.objects.count()
+    sessions_count = ClassSession.objects.count()
+    
+    return render(request, 'home.html', {
+        'schools_count': schools_count,
+        'faculty_count': faculty_count,
+        'sessions_count': sessions_count
+    })
 
 @csrf_exempt
 def principal_register(request):

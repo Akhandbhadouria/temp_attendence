@@ -13,9 +13,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-  <style>
-@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
-</style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+    </style>
     <style>
         *,
         *::before,
@@ -24,11 +24,12 @@
             padding: 0;
             box-sizing: border-box;
         }
-.bungee-regular {
-  font-family: "Bungee", sans-serif;
-  font-weight: 800;
-  font-style: normal;
-}
+
+        .bungee-regular {
+            font-family: "Bungee", sans-serif;
+            font-weight: 800;
+            font-style: normal;
+        }
 
         :root {
             /* Jewelry Shop / Admin Theme Palette */
@@ -65,9 +66,11 @@
             font-optical-sizing: auto;
         }
 
-       h1, h2, h3 {
-    font-family: 'Bungee', cursive;
-}
+        h1,
+        h2,
+        h3 {
+            font-family: 'Bungee', cursive;
+        }
 
 
         /* ── Soft Background Blobs (Restored & Recolored) ── */
@@ -1161,11 +1164,11 @@
         <!-- Stats Footer -->
         <div class="stats-footer">
             <div class="sf-item">
-                <div class="sf-val">500+</div>
+                <div class="sf-val">{{ schools_count|default:"0" }}</div>
                 <div class="sf-label">Schools Onboarded</div>
             </div>
             <div class="sf-item">
-                <div class="sf-val">12K+</div>
+                <div class="sf-val">{{ faculty_count|default:"0" }}</div>
                 <div class="sf-label">Faculty Tracked</div>
             </div>
             <div class="sf-item">
@@ -1173,7 +1176,7 @@
                 <div class="sf-label">Recognition Rate</div>
             </div>
             <div class="sf-item">
-                <div class="sf-val">2M+</div>
+                <div class="sf-val">{{ sessions_count|default:"0" }}</div>
                 <div class="sf-label">Sessions Logged</div>
             </div>
         </div>
