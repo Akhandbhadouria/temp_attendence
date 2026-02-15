@@ -835,19 +835,7 @@ def principal_analysis(request):
         # 2. Department-wise Performance Index
         # We'll collect per-teacher data keyed by department, then aggregate after the loop
         from collections import defaultdict
-        dept_perf_raw = defaultdict(lambda: {'consistencies': [], 'completions': []})
-
-        # 5. Department Discipline Heatmap
-        # We'll group violations (late + early) by Department and Week
-        dept_week_discipline = defaultdict(lambda: defaultdict(int))
-        
-        # Calculate weeks in the range for labels
-        heatmap_weeks = []
-        temp_week_start = start_date
-        while temp_week_start < end_date:
-            week_label = f"Week {len(heatmap_weeks) + 1}"
-            heatmap_weeks.append(week_label)
-            temp_week_start += datetime.timedelta(days=7)
+        dept_perf_raw = defaultdict(lambda: {'consistencies': [], 'completions': [], 'interruptions': []})
 
         # 6. Class Completion Rate (Bar Chart)
         completion_labels = []
@@ -885,58 +873,11 @@ def principal_analysis(request):
             # Store per-teacher consistency for department aggregation
             teacher_consistency = consistency_data[-1]  # last appended value
 
-            # --- 5. Discipline Metrics (Late Entries, Early Exits) ---
-            l_count = 0
-            e_count = 0
+            # --- 5. Interruption count for Risk Density ---
+            teacher_interruptions = 0
             for session in sessions:
-                if session.timetable:
-                    # Scheduled times (Naive time objects)
-                    s_start = session.timetable.start_time
-                    s_end = session.timetable.end_time
-                    
-                    # Convert session times to local timezone for accurate comparison
-                    local_session_start = timezone.localtime(session.start_time)
-                    a_start = local_session_start.time()
-                    
-                    # Calculate Late Entry (Grace period: 5 minutes)
-                    sched_start_mins = s_start.hour * 60 + s_start.minute
-                    act_start_mins = a_start.hour * 60 + a_start.minute
-                    if act_start_mins > (sched_start_mins + 5):
-                        l_count += 1
-                    
-                    if session.end_time:
-                        local_session_end = timezone.localtime(session.end_time)
-                        a_end = local_session_end.time()
-                        
-                        sched_end_mins = s_end.hour * 60 + s_end.minute
-                        act_end_mins = a_end.hour * 60 + a_end.minute
-                        
-                        # Early exit if they left before the scheduled end time
-                        if act_end_mins < sched_end_mins:
-                            e_count += 1
-            
-            # Map violations to weeks
-            for session in sessions:
-                # Determine week index
-                days_diff = (session.start_time - start_date).days
-                week_idx = days_diff // 7
-                if 0 <= week_idx < len(heatmap_weeks):
-                    week_label = heatmap_weeks[week_idx]
-                    
-                    # Check for late entry
-                    s_start = session.timetable.start_time
-                    local_session_start = timezone.localtime(session.start_time)
-                    a_start = local_session_start.time()
-                    if (a_start.hour * 60 + a_start.minute) > (s_start.hour * 60 + s_start.minute + 5):
-                        dept_week_discipline[teacher.department][week_label] += 1
-                    
-                    # Check for early exit
-                    if session.end_time:
-                        s_end = session.timetable.end_time
-                        local_session_end = timezone.localtime(session.end_time)
-                        a_end = local_session_end.time()
-                        if (a_end.hour * 60 + a_end.minute) < (s_end.hour * 60 + s_end.minute):
-                            dept_week_discipline[teacher.department][week_label] += 1
+                if session.monitoring_resumption_count and session.monitoring_resumption_count > 1:
+                    teacher_interruptions += (session.monitoring_resumption_count - 1)
 
             # --- 6. Completion Rate ---
             # Calculate scheduled classes in this period
@@ -964,6 +905,7 @@ def principal_analysis(request):
             teacher_completion = completion_data[-1]  # last appended value
             dept_perf_raw[teacher.department]['consistencies'].append(teacher_consistency)
             dept_perf_raw[teacher.department]['completions'].append(teacher_completion)
+            dept_perf_raw[teacher.department]['interruptions'].append(teacher_interruptions)
 
         # --- Department-wise Performance Index ---
         dept_perf_labels = []
@@ -979,6 +921,28 @@ def principal_analysis(request):
             dept_perf_avg_consistency.append(avg_cons)
             dept_perf_avg_completion.append(avg_comp)
             dept_perf_index.append(perf_idx)
+
+        # --- 5. Department Risk Density Heatmap ---
+        risk_density_labels = []  # department names
+        risk_low_consistency = []  # severity score 0-10
+        risk_low_completion = []   # severity score 0-10
+        risk_high_interruptions = []  # severity score 0-10
+        
+        for dept_code, vals in dept_perf_raw.items():
+            dept_name = dept_map.get(dept_code, dept_code)
+            risk_density_labels.append(dept_name)
+            
+            # Low Consistency risk: 100% = 0 risk, 0% = 10 risk
+            avg_cons = sum(vals['consistencies']) / len(vals['consistencies']) if vals['consistencies'] else 0
+            risk_low_consistency.append(round(max(0, (100 - avg_cons)) / 10, 1))
+            
+            # Low Completion risk: 100% = 0 risk, 0% = 10 risk
+            avg_comp = sum(vals['completions']) / len(vals['completions']) if vals['completions'] else 0
+            risk_low_completion.append(round(max(0, (100 - avg_comp)) / 10, 1))
+            
+            # High Interruptions risk: avg interruptions per teacher, capped at 10
+            avg_intr = sum(vals['interruptions']) / len(vals['interruptions']) if vals['interruptions'] else 0
+            risk_high_interruptions.append(round(min(10, avg_intr), 1))
 
         # 3. Daily Attendance Trend (Line Chart)
         # Always show last 14 days relative to the end of the selected period for context
@@ -1031,8 +995,10 @@ def principal_analysis(request):
             'daily_trend_data': daily_trend_data,
             'dept_presence_labels': dept_presence_labels,
             'dept_presence_data': dept_presence_data,
-            'heatmap_weeks': heatmap_weeks,
-            'dept_week_discipline': dict({dept: dict(weeks) for dept, weeks in dept_week_discipline.items()}),
+            'risk_density_labels': risk_density_labels,
+            'risk_low_consistency': risk_low_consistency,
+            'risk_low_completion': risk_low_completion,
+            'risk_high_interruptions': risk_high_interruptions,
             'completion_labels': completion_labels,
             'completion_data': completion_data,
             'departments': Teacher.DEPARTMENT_CHOICES,
@@ -1075,14 +1041,26 @@ def export_defaulter_csv(request):
     else:
         end_date = timezone.make_aware(datetime.datetime(year, month + 1, 1))
     
+    # Previous month range (for sustained consistency & decline trend)
+    if month == 1:
+        prev_month, prev_year = 12, year - 1
+    else:
+        prev_month, prev_year = month - 1, year
+    prev_start = timezone.make_aware(datetime.datetime(prev_year, prev_month, 1))
+    if prev_month == 12:
+        prev_end = timezone.make_aware(datetime.datetime(prev_year + 1, 1, 1))
+    else:
+        prev_end = timezone.make_aware(datetime.datetime(prev_year, prev_month + 1, 1))
+    
     # Response Configuration
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="defaulter_report_{month}_{year}.csv"'
     
     writer = csv.writer(response)
     writer.writerow([
-        'Teacher Name', 'Department', 'Attendance Consistency (%)', 'Completion Rate (%)',
-        'Late Entries', 'Early Exits', 'Interruptions', 'Risk Score', 'Status'
+        'Teacher Name', 'Department', 'Consistency (%)', 'Prev Consistency (%)',
+        'Completion Rate (%)', 'Gap Ratio (%)', 'Missed Classes',
+        'Risk Score (max 14)', 'Status'
     ])
     
     teachers = Teacher.objects.filter(principal=principal)
@@ -1099,92 +1077,134 @@ def export_defaulter_csv(request):
             start_time__lt=end_date
         )
         completed_sessions = sessions.filter(status='Completed')
+        timetables = teacher.timetables.all()
         
+        # ── Current month metrics ──
         total_scheduled_minutes = 0
         total_active_minutes = 0
-        late_entries = 0
-        early_exits = 0
-        interruptions = 0
         
         for session in sessions:
             if session.timetable:
                 s_start = session.timetable.start_time
                 s_end = session.timetable.end_time
-                
                 if session.status == 'Completed' and session.total_active_duration:
                     total_active_minutes += session.total_active_duration.total_seconds() / 60
-                    
                 d_start = datetime.datetime.combine(datetime.date.today(), s_start)
                 d_end = datetime.datetime.combine(datetime.date.today(), s_end)
                 total_scheduled_minutes += (d_end - d_start).total_seconds() / 60
-                
-                # Localize times for robust comparison
-                local_session_start = timezone.localtime(session.start_time)
-                a_start = local_session_start.time()
-                
-                s_start_mins = s_start.hour * 60 + s_start.minute
-                a_start_mins = a_start.hour * 60 + a_start.minute
-
-                if a_start_mins > (s_start_mins + 5):
-                    late_entries += 1
-
-                if session.end_time:
-                    local_session_end = timezone.localtime(session.end_time)
-                    a_end = local_session_end.time()
-                    
-                    s_end_mins = s_end.hour * 60 + s_end.minute
-                    a_end_mins = a_end.hour * 60 + a_end.minute
-                    
-                    if a_end_mins < s_end_mins:
-                        early_exits += 1
-            
-            if session.monitoring_resumption_count > 1:
-                interruptions += (session.monitoring_resumption_count - 1)
 
         consistency = 0
         if total_scheduled_minutes > 0:
-            consistency = round((total_active_minutes / total_scheduled_minutes) * 100, 1)
-            
-        scheduled_classes_count = 0
-        timetables = teacher.timetables.all()
+            consistency = min(100, round((total_active_minutes / total_scheduled_minutes) * 100, 1))
         
-        # Calculate scheduled classes for that specific month
+        # ── Previous month consistency ──
+        prev_sessions = ClassSession.objects.filter(
+            teacher=teacher, start_time__gte=prev_start, start_time__lt=prev_end
+        )
+        prev_completed = prev_sessions.filter(status='Completed')
+        prev_sched_mins = 0
+        prev_active_mins = 0
+        for s in prev_completed:
+            if s.timetable:
+                ps = datetime.datetime.combine(datetime.date.today(), s.timetable.start_time)
+                pe = datetime.datetime.combine(datetime.date.today(), s.timetable.end_time)
+                prev_sched_mins += (pe - ps).total_seconds() / 60
+                if s.total_active_duration:
+                    prev_active_mins += s.total_active_duration.total_seconds() / 60
+        prev_consistency = 0
+        if prev_sched_mins > 0:
+            prev_consistency = round((prev_active_mins / prev_sched_mins) * 100, 1)
+            
+        # ── Scheduled & missed classes ──
+        scheduled_classes_count = 0
         temp_date = start_date.date()
         loop_end = end_date.date()
+        # Build ordered list of (date, timetable) for absence tracking
+        scheduled_list = []
         while temp_date < loop_end:
             for tt in timetables:
                 if temp_date.weekday() == day_map_idx.get(tt.day):
                     scheduled_classes_count += 1
+                    scheduled_list.append((temp_date, tt))
             temp_date += datetime.timedelta(days=1)
             
         actual_completed = completed_sessions.count()
         completion_rate = 0
         if scheduled_classes_count > 0:
             completion_rate = round((actual_completed / scheduled_classes_count) * 100, 1)
-            
-        # Scoring
+        
+        # ── Attendance Gap Ratio ──
+        gap_ratio = 0
+        if total_scheduled_minutes > 0:
+            gap_ratio = max(0, round(((total_scheduled_minutes - total_active_minutes) / total_scheduled_minutes) * 100, 1))
+        
+        # ── Repeated Absence Pattern ──
+        missed_classes = 0
+        consecutive_missed = 0
+        max_consecutive = 0
+        for sched_date, tt in scheduled_list:
+            session_exists = sessions.filter(
+                timetable=tt,
+                start_time__date=sched_date
+            ).exists()
+            if not session_exists:
+                missed_classes += 1
+                consecutive_missed += 1
+                max_consecutive = max(max_consecutive, consecutive_missed)
+            else:
+                consecutive_missed = 0
+        
+        # ══════════════════════════════════════
+        # NEW RISK SCORE (Max 14)
+        # ══════════════════════════════════════
         risk_score = 0
-        if consistency < 75: risk_score += 3
-        elif 75 <= consistency <= 85: risk_score += 2
-        if early_exits > 3: risk_score += 2
-        if late_entries > 3: risk_score += 1
-        if interruptions > 0: risk_score += 2
-        if completion_rate < 80: risk_score += 2
-            
+        
+        # Factor 1: Sustained Low Consistency (max 4)
+        if consistency < 70:
+            risk_score += 2
+        elif consistency < 75 and prev_consistency < 75:
+            risk_score += 1
+        
+        # Factor 2: Low Completion Rate (max 3)
+        if completion_rate < 75:
+            risk_score += 2
+        elif completion_rate < 85:
+            risk_score += 1
+        
+        # Factor 3: Attendance Gap Ratio (max 3)
+        if gap_ratio > 40:
+            risk_score += 2
+        elif gap_ratio > 25:
+            risk_score += 2
+        
+        # Factor 4: Repeated Absence Pattern (max 2)
+        if max_consecutive >= 3 or missed_classes >= 5:
+            risk_score += 2
+        
+        # Factor 5: Performance Decline Trend (max 2)
+        if prev_consistency > 0 and consistency < (prev_consistency - 15):
+            risk_score += 2
+        
+        # ── Classification ──
         is_defaulter = False
-        if consistency < 70 or risk_score >= 6 or (early_exits > 3 and interruptions > 0):
+        if risk_score >= 30 or consistency < 65:
             is_defaulter = True
-            
-        status = 'DEFAULTER' if is_defaulter else ('Warning' if risk_score >= 3 else 'Good Standing')
+        
+        if is_defaulter:
+            status = 'DEFAULTER'
+        elif risk_score >= 12:
+            status = 'Needs Attention'
+        else:
+            status = 'Good Standing'
         
         writer.writerow([
             teacher.name,
             dept_map.get(teacher.department, teacher.department),
             f"{consistency}%",
+            f"{prev_consistency}%",
             f"{completion_rate}%",
-            late_entries,
-            early_exits,
-            interruptions,
+            f"{gap_ratio}%",
+            missed_classes,
             risk_score,
             status
         ])
@@ -1241,13 +1261,10 @@ def teacher_analysis(request, teacher_id):
         completed_sessions = sessions.filter(status='Completed')
 
         # ──────────────────────────────────────────────
-        # 1. RISK SCORE GAUGE
+        # 1. RISK SCORE GAUGE (NEW 5-Factor System)
         # ──────────────────────────────────────────────
         total_scheduled_minutes = 0
         total_active_minutes = 0
-        late_entries_count = 0
-        early_exits_count = 0
-        interruptions_count = 0
 
         for session in sessions:
             if session.timetable:
@@ -1261,42 +1278,49 @@ def teacher_analysis(request, teacher_id):
                 d_end = datetime.datetime.combine(datetime.date.today(), s_end)
                 total_scheduled_minutes += (d_end - d_start).total_seconds() / 60
 
-                # Localize times for robust comparison
-                local_session_start = tz.localtime(session.start_time)
-                a_start = local_session_start.time()
-
-                sched_start_mins = s_start.hour * 60 + s_start.minute
-                act_start_mins = a_start.hour * 60 + a_start.minute
-                
-                if act_start_mins > (sched_start_mins + 5):
-                    late_entries_count += 1
-
-                if session.end_time:
-                    local_session_end = tz.localtime(session.end_time)
-                    a_end = local_session_end.time()
-                    
-                    sched_end_mins = s_end.hour * 60 + s_end.minute
-                    act_end_mins = a_end.hour * 60 + a_end.minute
-                    
-                    if act_end_mins < sched_end_mins:
-                        early_exits_count += 1
-
-            if session.monitoring_resumption_count > 1:
-                interruptions_count += (session.monitoring_resumption_count - 1)
-
         consistency = 0
         if total_scheduled_minutes > 0:
-            consistency = round((total_active_minutes / total_scheduled_minutes) * 100, 1)
+            consistency = min(100, round((total_active_minutes / total_scheduled_minutes) * 100, 1))
 
-        # Scheduled classes count
+        # ── Previous month consistency ──
+        if month == 1:
+            prev_m, prev_y = 12, year - 1
+        else:
+            prev_m, prev_y = month - 1, year
+        prev_start = tz.make_aware(datetime.datetime(prev_y, prev_m, 1))
+        if prev_m == 12:
+            prev_end = tz.make_aware(datetime.datetime(prev_y + 1, 1, 1))
+        else:
+            prev_end = tz.make_aware(datetime.datetime(prev_y, prev_m + 1, 1))
+
+        prev_sessions = ClassSession.objects.filter(
+            teacher=teacher, start_time__gte=prev_start, start_time__lt=prev_end
+        )
+        prev_completed_sessions = prev_sessions.filter(status='Completed')
+        prev_sched_mins = 0
+        prev_active_mins = 0
+        for s in prev_completed_sessions:
+            if s.timetable:
+                ps = datetime.datetime.combine(datetime.date.today(), s.timetable.start_time)
+                pe = datetime.datetime.combine(datetime.date.today(), s.timetable.end_time)
+                prev_sched_mins += (pe - ps).total_seconds() / 60
+                if s.total_active_duration:
+                    prev_active_mins += s.total_active_duration.total_seconds() / 60
+        prev_consistency = 0
+        if prev_sched_mins > 0:
+            prev_consistency = round((prev_active_mins / prev_sched_mins) * 100, 1)
+
+        # Scheduled classes count & absence tracking
         scheduled_classes_count = 0
         timetables = teacher.timetables.all()
         temp_date = start_date.date()
         loop_end = end_date.date()
+        scheduled_list = []
         while temp_date < loop_end:
             for tt in timetables:
                 if temp_date.weekday() == day_map_idx.get(tt.day):
                     scheduled_classes_count += 1
+                    scheduled_list.append((temp_date, tt))
             temp_date += datetime.timedelta(days=1)
 
         actual_completed = completed_sessions.count()
@@ -1304,34 +1328,74 @@ def teacher_analysis(request, teacher_id):
         if scheduled_classes_count > 0:
             completion_rate = round((actual_completed / scheduled_classes_count) * 100, 1)
 
-        # Risk score calculation (same as CSV export)
+        # ── Attendance Gap Ratio ──
+        gap_ratio = 0
+        if total_scheduled_minutes > 0:
+            gap_ratio = max(0, round(((total_scheduled_minutes - total_active_minutes) / total_scheduled_minutes) * 100, 1))
+
+        # ── Repeated Absence Pattern ──
+        missed_classes = 0
+        consecutive_missed = 0
+        max_consecutive = 0
+        for sched_date, tt in scheduled_list:
+            session_exists = sessions.filter(
+                timetable=tt,
+                start_time__date=sched_date
+            ).exists()
+            if not session_exists:
+                missed_classes += 1
+                consecutive_missed += 1
+                max_consecutive = max(max_consecutive, consecutive_missed)
+            else:
+                consecutive_missed = 0
+
+        # ══════════════════════════════════════
+        # NEW RISK SCORE (Max 14)
+        # ══════════════════════════════════════
         risk_score = 0
-        if consistency < 75:
+
+        # Factor 1: Sustained Low Consistency (max 4)
+        if consistency < 70:
+            risk_score += 4
+        elif consistency < 75 and prev_consistency < 75:
             risk_score += 3
-        elif 75 <= consistency <= 85:
-            risk_score += 2
-        if early_exits_count > 3:
-            risk_score += 2
-        if late_entries_count > 3:
-            risk_score += 1
-        if interruptions_count > 0:
-            risk_score += 2
-        if completion_rate < 80:
+
+        # Factor 2: Low Completion Rate (max 3)
+        if completion_rate < 75:
+            risk_score += 3
+        elif completion_rate < 85:
             risk_score += 2
 
-        max_risk = 10
+        # Factor 3: Attendance Gap Ratio (max 3)
+        if gap_ratio > 40:
+            risk_score += 3
+        elif gap_ratio > 25:
+            risk_score += 2
+
+        # Factor 4: Repeated Absence Pattern (max 2)
+        if max_consecutive >= 3 or missed_classes >= 5:
+            risk_score += 2
+
+        # Factor 5: Performance Decline Trend (max 2)
+        decline_detected = False
+        if prev_consistency > 0 and consistency < (prev_consistency - 15):
+            risk_score += 2
+            decline_detected = True
+
+        max_risk = 14
         # Performance score: inverse of risk (higher = better)
         performance_score = max(0, round(100 - (risk_score / max_risk) * 100))
 
-        if performance_score >= 75:
-            risk_category = 'Reliable'
-            risk_color = '#10b981'
-        elif performance_score >= 45:
+        # Classification
+        if risk_score >= 30 or consistency < 65:
+            risk_category = 'Defaulter'
+            risk_color = '#ef4444'
+        elif risk_score >= 12:
             risk_category = 'Needs Attention'
             risk_color = '#f59e0b'
         else:
-            risk_category = 'Defaulter'
-            risk_color = '#ef4444'
+            risk_category = 'Reliable'
+            risk_color = '#10b981'
 
         # ──────────────────────────────────────────────
         # 2. WEEKLY PERFORMANCE HEATMAP
@@ -1374,10 +1438,10 @@ def teacher_analysis(request, teacher_id):
         # ──────────────────────────────────────────────
         # 3. ATTENDANCE CONSISTENCY RADAR
         # ──────────────────────────────────────────────
-        # Dimensions: Punctuality, Duration, Completion, Regularity, Focus
-        punctuality_score = max(0, 100 - (late_entries_count * 15)) if scheduled_classes_count > 0 else 0
-        duration_score = min(100, consistency)
+        # Dimensions: Consistency, Completion, Gap Efficiency, Regularity, Stability
+        consistency_score = min(100, consistency)
         completion_score = min(100, completion_rate)
+        gap_efficiency_score = max(0, 100 - gap_ratio) if total_scheduled_minutes > 0 else 0
         
         # Regularity: attendance frequency
         attendance_in_period = TeacherAttendance.objects.filter(
@@ -1393,11 +1457,14 @@ def teacher_analysis(request, teacher_id):
             temp_date += datetime.timedelta(days=1)
         regularity_score = min(100, round((attendance_in_period / max(1, working_days_in_period)) * 100))
         
-        # Focus: lower interruptions = better
-        focus_score = max(0, 100 - (interruptions_count * 20))
+        # Stability: no decline = 100, decline detected = lower
+        stability_score = 50 if decline_detected else 100
+        if prev_consistency > 0:
+            diff = consistency - prev_consistency
+            stability_score = max(0, min(100, round(50 + diff)))
 
-        radar_labels = ['Punctuality', 'Duration', 'Completion', 'Regularity', 'Focus']
-        radar_data = [punctuality_score, duration_score, completion_score, regularity_score, focus_score]
+        radar_labels = ['Consistency', 'Completion', 'Gap Efficiency', 'Regularity', 'Stability']
+        radar_data = [consistency_score, completion_score, gap_efficiency_score, regularity_score, stability_score]
 
         # ──────────────────────────────────────────────
         # 4. MONTHLY TREND (last 6 months)
@@ -1457,26 +1524,13 @@ def teacher_analysis(request, teacher_id):
         classwise_scheduled = [round(v['scheduled'], 1) for v in subject_stats.values()]
 
         # ──────────────────────────────────────────────
-        # 6. PUNCTUALITY DOUGHNUT
+        # 6. PUNCTUALITY DOUGHNUT (Based on daily punch-in)
         # ──────────────────────────────────────────────
-        on_time_count = 0
-        late_count = 0
-        for session in sessions:
-            if session.timetable:
-                s_start = session.timetable.start_time
-                local_session_start = tz.localtime(session.start_time)
-                a_start = local_session_start.time()
-                
-                sched_start_mins = s_start.hour * 60 + s_start.minute
-                act_start_mins = a_start.hour * 60 + a_start.minute
-                
-                if act_start_mins > (sched_start_mins + 5):
-                    late_count += 1
-                else:
-                    on_time_count += 1
+        on_time_classes = actual_completed
+        missed_count = missed_classes
 
-        punctuality_labels = ['On Time', 'Late Entry']
-        punctuality_data = [on_time_count, late_count]
+        punctuality_labels = ['Classes Taken', 'Classes Missed']
+        punctuality_data = [on_time_classes, missed_count]
 
         # ──────────────────────────────────────────────
         # 7. SUMMARY STATS CARDS
@@ -1501,12 +1555,14 @@ def teacher_analysis(request, teacher_id):
             'risk_score': risk_score,
             # Stats
             'consistency': consistency,
+            'prev_consistency': prev_consistency,
             'completion_rate': completion_rate,
             'total_classes_taken': total_classes_taken,
             'scheduled_classes_count': scheduled_classes_count,
-            'late_entries_count': late_entries_count,
-            'early_exits_count': early_exits_count,
-            'interruptions_count': interruptions_count,
+            'gap_ratio': gap_ratio,
+            'missed_classes': missed_classes,
+            'max_consecutive': max_consecutive,
+            'decline_detected': decline_detected,
             'avg_duration_mins': avg_duration_mins,
             'total_active_minutes': round(total_active_minutes, 1),
             'attendance_in_period': attendance_in_period,

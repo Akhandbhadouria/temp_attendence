@@ -134,30 +134,31 @@
                                 <span class="risk-factor-name"><i class="fas fa-percentage" style="color: #4f46e5;"></i>
                                     Consistency</span>
                                 <span class="risk-factor-value"
-                                    style="color: {% if consistency >= 85 %}#10b981{% elif consistency >= 70 %}#f59e0b{% else %}#ef4444{% endif %};">{{ consistency }}%</span>
+                                    style="color: {% if consistency >= 75 %}#10b981{% elif consistency >= 65 %}#f59e0b{% else %}#ef4444{% endif %};">{{consistency }}%</span>
                             </div>
                             <div class="risk-factor">
                                 <span class="risk-factor-name"><i class="fas fa-check-double"
                                         style="color: #ec4899;"></i> Completion Rate</span>
                                 <span class="risk-factor-value"
-                                    style="color: {% if completion_rate >= 80 %}#10b981{% elif completion_rate >= 60 %}#f59e0b{% else %}#ef4444{% endif %};">{{completion_rate }}%</span>
+                                    style="color: {% if completion_rate >= 85 %}#10b981{% elif completion_rate >= 75 %}#f59e0b{% else %}#ef4444{% endif %};">{{completion_rate }}%</span>
                             </div>
                             <div class="risk-factor">
-                                <span class="risk-factor-name"><i class="fas fa-clock" style="color: #f59e0b;"></i> Late
-                                    Entries</span>
+                                <span class="risk-factor-name"><i class="fas fa-chart-bar" style="color: #f59e0b;"></i>
+                                    Gap Ratio</span>
                                 <span class="risk-factor-value"
-                                    style="color: {% if late_entries_count <= 2 %}#10b981{% elif late_entries_count <= 5 %}#f59e0b{% else %}#ef4444{% endif %};">{{late_entries_count }}</span>
+                                    style="color: {% if gap_ratio <= 25 %}#10b981{% elif gap_ratio <= 40 %}#f59e0b{% else %}#ef4444{% endif %};">{{gap_ratio }}%</span>
                             </div>
                             <div class="risk-factor">
-                                <span class="risk-factor-name"><i class="fas fa-sign-out-alt"
-                                        style="color: #ef4444;"></i> Early Exits</span>
+                                <span class="risk-factor-name"><i class="fas fa-calendar-times"
+                                        style="color: #8b5cf6;"></i> Missed Classes</span>
                                 <span class="risk-factor-value"
-                                    style="color: {% if early_exits_count <= 2 %}#10b981{% elif early_exits_count <= 5 %}#f59e0b{% else %}#ef4444{% endif %};">{{early_exits_count }}</span>
+                                    style="color: {% if missed_classes < 3 %}#10b981{% elif missed_classes < 5 %}#f59e0b{% else %}#ef4444{% endif %};">{{missed_classes }} ({{ max_consecutive }} consecutive)</span>
                             </div>
                             <div class="risk-factor">
-                                <span class="risk-factor-name"><i class="fas fa-bolt" style="color: #8b5cf6;"></i>Interruptions</span>
+                                <span class="risk-factor-name"><i class="fas fa-chart-line" style="color: #06b6d4;"></i>
+                                    Stability</span>
                                 <span class="risk-factor-value"
-                                    style="color: {% if interruptions_count == 0 %}#10b981{% elif interruptions_count <= 3 %}#f59e0b{% else %}#ef4444{% endif %};">{{interruptions_count }}</span>
+                                    style="color: {% if decline_detected %}#ef4444{% else %}#10b981{% endif %};">{% if decline_detected %}Declining ↓{% else %}Stable ✓{% endif %} (Prev: {{prev_consistency }}%)</span>
                             </div>
                         </div>
                     </div>

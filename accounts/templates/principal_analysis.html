@@ -144,14 +144,15 @@
                 </div>
             </div>
 
-            <!-- 5. Department Discipline Heatmap -->
+            <!-- 5. Department Risk Density Heatmap -->
             <div class="content-card">
                 <div class="card-header">
-                    <h2><i class="fas fa-fire" style="margin-right: 8px; color: #ef4444;"></i> Dept. Discipline Heatmap
+                    <h2><i class="fas fa-exclamation-triangle" style="margin-right: 8px; color: #ef4444;"></i> Dept.
+                        Risk Density Heatmap
                     </h2>
                 </div>
                 <div class="chart-wrapper">
-                    <canvas id="disciplineHeatmap"></canvas>
+                    <canvas id="riskDensityChart"></canvas>
                 </div>
             </div>
 
@@ -289,43 +290,51 @@
         }
         });
 
-        // 5. Discipline Heatmap (Grouped Bar with value-based colors)
-        const heatmapWeeks = {{ heatmap_weeks|default:"[]" | safe }};
-        const deptDisciplineRaw = {{ dept_week_discipline|default:"{}" | safe }};
-        const deptsForHeatmap = Object.keys(deptDisciplineRaw);
+        // 5. Department Risk Density Heatmap
+        const riskLabels = {{ risk_density_labels|default:"[]" | safe }};
+        const riskLowCons = {{ risk_low_consistency|default:"[]" | safe }};
+        const riskLowComp = {{ risk_low_completion|default:"[]" | safe }};
+        const riskHighIntr = {{ risk_high_interruptions|default:"[]" | safe }};
 
-        const heatColors = [
-            'rgba(16, 185, 129, 0.2)', // Low (Greenish)
-            'rgba(245, 158, 11, 0.4)', // Medium (Amber)
-            'rgba(239, 68, 68, 0.6)',  // High (Red)
-            'rgba(239, 68, 68, 0.9)'   // Critical (Deep Red)
-        ];
-
-        const getHeatColor = (val) => {
-            if (val === 0) return 'rgba(243, 244, 246, 0.5)';
-            if (val <= 2) return heatColors[0];
-            if (val <= 5) return heatColors[1];
-            if (val <= 10) return heatColors[2];
-            return heatColors[3];
+        // Severity color function: 0 = green, 5 = amber, 10 = deep red
+        const getSeverityColor = (val) => {
+            if (val <= 2) return 'rgba(16, 185, 129, 0.75)';  // Green
+            if (val <= 4) return 'rgba(52, 211, 153, 0.75)';  // Light green
+            if (val <= 6) return 'rgba(245, 158, 11, 0.75)';  // Amber
+            if (val <= 8) return 'rgba(239, 68, 68, 0.75)';   // Red
+            return 'rgba(185, 28, 28, 0.9)';                  // Deep red
         };
 
-        const heatmapDatasets = heatmapWeeks.map((week, wIdx) => {
-            const data = deptsForHeatmap.map(dept => deptDisciplineRaw[dept][week] || 0);
-            return {
-                label: week,
-                data: data,
-                backgroundColor: data.map(v => getHeatColor(v)),
-                borderRadius: 4,
-                borderWidth: 1,
-                borderColor: 'rgba(255, 255, 255, 0.5)'
-            };
-        });
-
-        new Chart(document.getElementById('disciplineHeatmap'), {
+        new Chart(document.getElementById('riskDensityChart'), {
             type: 'bar',
             data: {
-                labels: deptsForHeatmap.map(d => d.replace('_', ' ')),
-                datasets: heatmapDatasets
+                labels: riskLabels,
+                datasets: [
+                    {
+                        label: 'Low Consistency',
+                        data: riskLowCons,
+                        backgroundColor: riskLowCons.map(v => getSeverityColor(v)),
+                        borderRadius: 4,
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.5)'
+                    },
+                    {
+                        label: 'Low Completion',
+                        data: riskLowComp,
+                        backgroundColor: riskLowComp.map(v => getSeverityColor(v)),
+                        borderRadius: 4,
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.5)'
+                    },
+                    {
+                        label: 'High Interruptions',
+                        data: riskHighIntr,
+                        backgroundColor: riskHighIntr.map(v => getSeverityColor(v)),
+                        borderRadius: 4,
+                        borderWidth: 1,
+                        borderColor: 'rgba(255,255,255,0.5)'
+                    }
+                ]
             },
             options: {
                 ...commonOptions,
@@ -333,8 +342,9 @@
                 scales: {
                     x: {
                         beginAtZero: true,
-                        ticks: { stepSize: 1 },
-                        title: { display: true, text: 'Discipline Violations (Late/Early)' }
+                        max: 10,
+                        ticks: { stepSize: 2 },
+                        title: { display: true, text: 'Risk Severity (0 = Safe, 10 = Critical)' }
                     },
                     y: {
                         stacked: false,
@@ -345,7 +355,15 @@
                     legend: { position: 'bottom' },
                     tooltip: {
                         callbacks: {
-                            label: (context) => `${context.dataset.label}: ${context.raw} incidents`
+                            label: (context) => {
+                                const val = context.raw;
+                                let severity = 'Safe';
+                                if (val > 8) severity = 'Critical';
+                                else if (val > 6) severity = 'High';
+                                else if (val > 4) severity = 'Medium';
+                                else if (val > 2) severity = 'Low';
+                                return `${context.dataset.label}: ${val}/10 (${severity})`;
+                            }
                         }
                     }
                 }

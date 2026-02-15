@@ -1,0 +1,9 @@
+Teacher Name,Department,Consistency (%),Prev Consistency (%),Completion Rate (%),Gap Ratio (%),Missed Classes,Risk Score (max 14),Status
+mulan singh,Chemistry,3.8%,0%,25.0%,96.2%,3,8,DEFAULTER
+jay,English,1.7%,0%,25.0%,98.3%,3,8,DEFAULTER
+rohhit,Physics,0%,0%,0%,0%,0,4,DEFAULTER
+abhinav,Physical Education,2.5%,0%,25.0%,97.5%,6,8,DEFAULTER
+babu bhai,Physics,0%,0%,0%,0%,0,4,DEFAULTER
+roshan,Physics,6.2%,0%,25.0%,93.8%,3,6,DEFAULTER
+irfan,Computer Science,0%,0%,0%,0%,0,4,DEFAULTER
+Akhand Pratap singh,Mathematics,100%,0%,25.0%,0%,3,4,Good Standing

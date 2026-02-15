@@ -65,7 +65,7 @@
                                 <select name="month" class="input-field" onchange="this.form.submit()">
                                     <option value="">Month</option>
                                     {% for m_id, m_name in months %}
-                                    <option value="{{ m_id }}" {% if selected_month==m_id %}selected{% endif %}>{{
+                                    <option value="{{ m_id }}" {% if selected_month == m_id %}selected{% endif %}>{{
                                         m_name }}
                                     </option>
                                     {% endfor %}
@@ -73,7 +73,7 @@
                                 <select name="year" class="input-field" onchange="this.form.submit()">
                                     <option value="">Year</option>
                                     {% for y in years %}
-                                    <option value="{{ y }}" {% if selected_year==y %}selected{% endif %}>{{ y }}
+                                    <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}
                                     </option>
                                     {% endfor %}
                                 </select>
@@ -121,15 +121,12 @@
                                     <td>
                                         <div style="font-weight: 600; color: #1F2937;">{{
                                             session.timetable.subject|default:"Extra Class" }}</div>
-                                        <div style="font-size: 0.85rem; color: #9CA3AF;">{{ session.start_time|date:"M
-                                            d, Y"
-                                            }}</div>
+                                        <div style="font-size: 0.85rem; color: #9CA3AF;">{{ session.start_time|date:"Md, Y"}}</div>
                                     </td>
                                     <td>
                                         {% if session.timetable %}
                                         <div style="font-family: monospace; font-size: 0.9rem; color: #4B5563;">
-                                            {{ session.timetable.start_time|time:"h:i A" }} - {{
-                                            session.timetable.end_time|time:"h:i A" }}
+                                            {{ session.timetable.start_time|time:"h:i A" }} - {{session.timetable.end_time|time:"h:i A" }}
                                         </div>
                                         {% else %}
                                         <span style="font-style: italic; color: #9CA3AF;">Unscheduled</span>
