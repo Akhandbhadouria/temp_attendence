@@ -1,0 +1,473 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Knowledge Base — {{ school_name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg: #0f1117; --bg2: #1a1d27; --bg3: #22263a; --card: #1e2235;
+            --blue: #4f8ef7; --purple: #7c5fe6; --green: #34d399; --red: #f87171; --amber: #fbbf24;
+            --text: #f1f5f9; --text2: #94a3b8; --muted: #64748b;
+            --border: rgba(255,255,255,0.07);
+            --grad: linear-gradient(135deg, #4f8ef7, #7c5fe6);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        .topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 28px; background: var(--bg2); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .logo-icon {
+            width: 40px; height: 40px; border-radius: 12px; background: var(--grad);
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .topbar h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700;
+            background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .topbar p { font-size: 11px; color: var(--muted); }
+        .back-btn {
+            display: flex; align-items: center; gap: 6px; padding: 8px 16px;
+            background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+            color: var(--text2); text-decoration: none; font-size: 12px; font-weight: 500; transition: all 0.2s;
+        }
+        .back-btn:hover { background: var(--card); color: var(--text); }
+
+        .page { max-width: 960px; margin: 0 auto; padding: 36px 24px; }
+
+        .page-header { margin-bottom: 32px; }
+        .page-header h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+        .page-header p { color: var(--text2); font-size: 14px; }
+
+        /* Stats Row */
+        .stats-row { display: flex; gap: 16px; margin-bottom: 32px; flex-wrap: wrap; }
+        .stat-card {
+            flex: 1; min-width: 140px; background: var(--card); border: 1px solid var(--border);
+            border-radius: 14px; padding: 18px 20px;
+        }
+        .stat-card .icon { font-size: 20px; margin-bottom: 10px; }
+        .stat-card .value { font-size: 26px; font-weight: 700; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .stat-card .label { font-size: 12px; color: var(--text2); margin-top: 2px; }
+        .stat-card.blue .value { color: var(--blue); }
+        .stat-card.green .value { color: var(--green); }
+        .stat-card.amber .value { color: var(--amber); }
+
+        /* Upload Zone */
+        .upload-card {
+            background: var(--card); border: 2px dashed var(--border);
+            border-radius: 16px; padding: 40px; text-align: center;
+            margin-bottom: 32px; transition: all 0.3s; cursor: pointer;
+        }
+        .upload-card.dragover { border-color: var(--blue); background: rgba(79,142,247,0.05); }
+        .upload-card .upload-icon { font-size: 40px; margin-bottom: 14px; opacity: 0.5; }
+        .upload-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .upload-card p { color: var(--text2); font-size: 13px; margin-bottom: 20px; }
+        .file-types { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+        .type-badge {
+            padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600;
+            background: rgba(79,142,247,0.1); color: var(--blue); border: 1px solid rgba(79,142,247,0.2);
+        }
+        #fileInput { display: none; }
+        .browse-btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px;
+            background: var(--grad); border: none; border-radius: 10px; color: #fff;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;
+        }
+        .browse-btn:hover { opacity: 0.85; }
+
+        /* File queue */
+        .file-queue { margin-top: 20px; display: none; }
+        .file-queue-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .file-queue-header h4 { font-size: 13px; font-weight: 600; color: var(--text2); }
+        .file-item {
+            display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+            background: var(--bg3); border-radius: 10px; margin-bottom: 8px;
+        }
+        .file-item-icon { font-size: 18px; flex-shrink: 0; }
+        .file-item-info { flex: 1; min-width: 0; }
+        .file-item-info .name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .file-item-info .size { font-size: 11px; color: var(--muted); }
+        .file-item-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 4px; transition: color 0.2s; }
+        .file-item-remove:hover { color: var(--red); }
+
+        .upload-btn {
+            display: block; width: 100%; padding: 13px; background: var(--grad);
+            border: none; border-radius: 12px; color: #fff; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: opacity 0.2s; margin-top: 12px;
+        }
+        .upload-btn:hover { opacity: 0.85; }
+        .upload-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Progress */
+        .upload-progress { margin-top: 16px; display: none; }
+        .progress-bar-wrap { background: var(--bg3); border-radius: 8px; height: 6px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--grad); border-radius: 8px; transition: width 0.3s ease; width: 0%; }
+        .progress-text { font-size: 12px; color: var(--text2); margin-top: 8px; text-align: center; }
+
+        /* Results */
+        .upload-results { margin-top: 16px; }
+        .result-item {
+            display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px;
+            border-radius: 10px; margin-bottom: 8px; font-size: 13px;
+        }
+        .result-item.success { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); color: var(--green); }
+        .result-item.error { background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2); color: var(--red); }
+
+        /* Documents Table */
+        .docs-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+        .docs-table { width: 100%; border-collapse: collapse; }
+        .docs-table th {
+            text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+            text-transform: uppercase; color: var(--muted); padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .docs-table td { padding: 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .docs-table tr:last-child td { border-bottom: none; }
+        .docs-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .doc-title { font-size: 14px; font-weight: 500; }
+        .doc-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+        .type-pill {
+            display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 600;
+        }
+        .type-pill.pdf { background: rgba(248,113,113,0.1); color: var(--red); }
+        .type-pill.md { background: rgba(79,142,247,0.1); color: var(--blue); }
+        .type-pill.txt { background: rgba(52,211,153,0.1); color: var(--green); }
+
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+        }
+        .status-pill.ingested { background: rgba(52,211,153,0.1); color: var(--green); }
+        .status-pill.pending { background: rgba(251,191,36,0.1); color: var(--amber); }
+
+        .delete-btn {
+            padding: 7px 14px; background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.2);
+            border-radius: 8px; color: var(--red); font-size: 12px; font-weight: 500; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .delete-btn:hover { background: rgba(248,113,113,0.15); }
+
+        .empty-state {
+            text-align: center; padding: 48px 24px; background: var(--card);
+            border: 1px solid var(--border); border-radius: 14px;
+        }
+        .empty-state i { font-size: 36px; opacity: 0.3; margin-bottom: 14px; display: block; }
+        .empty-state p { color: var(--text2); font-size: 14px; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; padding: 14px 20px;
+            border-radius: 12px; font-size: 13px; font-weight: 500; z-index: 1000;
+            animation: slideUp 0.3s ease; max-width: 360px;
+        }
+        .toast.success { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3); color: var(--green); }
+        .toast.error { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
+        @keyframes slideUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-left">
+        <div class="logo-icon">🏛️</div>
+        <div>
+            <h1>Knowledge Base Manager</h1>
+            <p>{{ school_name }} — Upload institutional policy documents</p>
+        </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+        <a href="{% url 'chatbot' %}" class="back-btn"><i class="fas fa-robot"></i> Open Chat</a>
+        <a href="{% url 'principal_dashboard' %}" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    </div>
+</div>
+
+<div class="page">
+    <div class="page-header">
+        <h2>📚 Institutional Knowledge Base</h2>
+        <p>Upload your school's policy documents, handbooks, and guidelines. The AI chatbot will answer questions exclusively from these files.</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <div class="icon">📄</div>
+            <div class="value" id="totalDocsCount">{{ documents.count }}</div>
+            <div class="label">Documents Uploaded</div>
+        </div>
+        <div class="stat-card green">
+            <div class="icon">🧩</div>
+            <div class="value">{{ doc_count }}</div>
+            <div class="label">Knowledge Chunks</div>
+        </div>
+        <div class="stat-card amber">
+            <div class="icon">🏫</div>
+            <div class="value">{{ school_name|truncatechars:12 }}</div>
+            <div class="label">Your School</div>
+        </div>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="upload-card" id="dropZone">
+        <div class="upload-icon">☁️</div>
+        <h3>Drop files here or browse to upload</h3>
+        <p>Upload multiple policy files at once. Each school has its own private knowledge base.</p>
+        <div class="file-types">
+            <span class="type-badge"><i class="fas fa-file-pdf"></i> PDF</span>
+            <span class="type-badge"><i class="fas fa-file-alt"></i> MD</span>
+            <span class="type-badge"><i class="fas fa-file-lines"></i> TXT</span>
+        </div>
+        <input type="file" id="fileInput" multiple accept=".pdf,.md,.txt">
+        <button class="browse-btn" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-folder-open"></i> Browse Files
+        </button>
+
+        <!-- File Queue -->
+        <div class="file-queue" id="fileQueue">
+            <div class="file-queue-header">
+                <h4 id="queueTitle">Files ready to upload</h4>
+                <span style="font-size:12px;color:var(--muted);cursor:pointer;" onclick="clearQueue()">Clear all</span>
+            </div>
+            <div id="fileList"></div>
+            <button class="upload-btn" id="uploadBtn" onclick="uploadFiles()">
+                <i class="fas fa-upload"></i> Upload & Ingest Files
+            </button>
+        </div>
+
+        <!-- Progress -->
+        <div class="upload-progress" id="uploadProgress">
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text" id="progressText">Uploading and ingesting documents…</p>
+        </div>
+
+        <!-- Results -->
+        <div class="upload-results" id="uploadResults"></div>
+    </div>
+
+    <!-- Documents List -->
+    <div class="docs-section">
+        <h3>Uploaded Documents</h3>
+
+        {% if documents %}
+        <table class="docs-table" id="docsTable">
+            <thead>
+                <tr>
+                    <th>Document</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Uploaded</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="docsBody">
+                {% for doc in documents %}
+                <tr id="doc-row-{{ doc.id }}">
+                    <td>
+                        <div class="doc-title">{{ doc.title }}</div>
+                        <div class="doc-meta">{{ doc.file.name|slice:"16:" }}</div>
+                    </td>
+                    <td><span class="type-pill {{ doc.file_type }}">{{ doc.file_type|upper }}</span></td>
+                    <td>
+                        {% if doc.is_ingested %}
+                        <span class="status-pill ingested"><i class="fas fa-check-circle"></i> Ingested</span>
+                        {% else %}
+                        <span class="status-pill pending"><i class="fas fa-clock"></i> Pending</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px;color:var(--muted);">{{ doc.uploaded_at|date:"d M Y, H:i" }}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteDocument({{ doc.id }}, '{{ doc.title }}')">
+                            <i class="fas fa-trash-alt"></i> Remove
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-folder-open"></i>
+            <p>No documents uploaded yet.<br>Upload your first policy file above.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    const UPLOAD_URL = "{% url 'upload_documents' %}";
+    const DELETE_BASE = "{% url 'delete_document' doc_id=0 %}".replace('/0/', '/');
+    const CSRF_TOKEN = "{{ csrf_token }}";
+
+    let selectedFiles = [];
+
+    // ── Drag & Drop ──
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        addFiles(Array.from(e.dataTransfer.files));
+    });
+
+    document.getElementById('fileInput').addEventListener('change', e => {
+        addFiles(Array.from(e.target.files));
+        e.target.value = ''; // reset input
+    });
+
+    function addFiles(newFiles) {
+        const allowed = ['pdf', 'md', 'txt'];
+        for (const f of newFiles) {
+            const ext = f.name.split('.').pop().toLowerCase();
+            if (!allowed.includes(ext)) {
+                showToast(`❌ "${f.name}" is not supported. Only PDF, MD, TXT.`, 'error');
+                continue;
+            }
+            if (!selectedFiles.find(sf => sf.name === f.name && sf.size === f.size)) {
+                selectedFiles.push(f);
+            }
+        }
+        renderFileQueue();
+    }
+
+    function renderFileQueue() {
+        const queue = document.getElementById('fileQueue');
+        const list = document.getElementById('fileList');
+        const title = document.getElementById('queueTitle');
+
+        if (selectedFiles.length === 0) {
+            queue.style.display = 'none';
+            return;
+        }
+
+        queue.style.display = 'block';
+        title.textContent = `${selectedFiles.length} file${selectedFiles.length > 1 ? 's' : ''} ready to upload`;
+
+        list.innerHTML = selectedFiles.map((f, i) => {
+            const ext = f.name.split('.').pop().toLowerCase();
+            const icon = ext === 'pdf' ? '📕' : ext === 'md' ? '📝' : '📄';
+            const size = (f.size / 1024).toFixed(1);
+            return `
+                <div class="file-item" id="fq-${i}">
+                    <span class="file-item-icon">${icon}</span>
+                    <div class="file-item-info">
+                        <div class="name">${f.name}</div>
+                        <div class="size">${size} KB</div>
+                    </div>
+                    <button class="file-item-remove" onclick="removeFile(${i})"><i class="fas fa-times"></i></button>
+                </div>`;
+        }).join('');
+    }
+
+    function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        renderFileQueue();
+    }
+
+    function clearQueue() {
+        selectedFiles = [];
+        renderFileQueue();
+    }
+
+    async function uploadFiles() {
+        if (selectedFiles.length === 0) return;
+
+        const btn = document.getElementById('uploadBtn');
+        const progress = document.getElementById('uploadProgress');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const resultsDiv = document.getElementById('uploadResults');
+
+        btn.disabled = true;
+        progress.style.display = 'block';
+        resultsDiv.innerHTML = '';
+        progressFill.style.width = '20%';
+        progressText.textContent = `Uploading ${selectedFiles.length} file(s)…`;
+
+        const formData = new FormData();
+        for (const f of selectedFiles) formData.append('documents', f);
+
+        try {
+            progressFill.style.width = '60%';
+            progressText.textContent = 'Ingesting into knowledge base…';
+
+            const res = await fetch(UPLOAD_URL, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF_TOKEN },
+                body: formData
+            });
+
+            const data = await res.json();
+            progressFill.style.width = '100%';
+            progressText.textContent = data.summary || 'Done!';
+
+            // Show results
+            resultsDiv.innerHTML = data.results.map(r => `
+                <div class="result-item ${r.status}">
+                    <i class="fas fa-${r.status === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <span>${r.message}</span>
+                </div>`).join('');
+
+            // Update stats
+            const docsCountEl = document.getElementById('totalDocsCount');
+            const successCount = data.results.filter(r => r.status === 'success').length;
+            docsCountEl.textContent = parseInt(docsCountEl.textContent) + successCount;
+
+            showToast(data.summary, 'success');
+
+            // Reload page after short delay to show new table rows
+            if (successCount > 0) setTimeout(() => location.reload(), 2000);
+
+        } catch (err) {
+            progressText.textContent = 'Upload failed.';
+            resultsDiv.innerHTML = `<div class="result-item error"><i class="fas fa-exclamation-circle"></i> Network error. Please try again.</div>`;
+        } finally {
+            btn.disabled = false;
+            selectedFiles = [];
+            renderFileQueue();
+        }
+    }
+
+    async function deleteDocument(docId, title) {
+        if (!confirm(`Remove "${title}" from the knowledge base?`)) return;
+
+        try {
+            const res = await fetch(`${DELETE_BASE}${docId}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF_TOKEN, 'Content-Type': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+                const row = document.getElementById(`doc-row-${docId}`);
+                if (row) row.remove();
+                const docsCountEl = document.getElementById('totalDocsCount');
+                docsCountEl.textContent = Math.max(0, parseInt(docsCountEl.textContent) - 1);
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.error || 'Delete failed.', 'error');
+            }
+        } catch {
+            showToast('Network error.', 'error');
+        }
+    }
+
+    function showToast(msg, type = 'success') {
+        const old = document.querySelector('.toast');
+        if (old) old.remove();
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${msg}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+</script>
+</body>
+</html>

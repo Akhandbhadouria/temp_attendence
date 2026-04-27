@@ -134,11 +134,21 @@ def principal_dashboard(request):
     absent_count = total_teachers - present_today_count
     logger.debug("Dashboard stats: Total=%d, Present=%d, Absent=%d", total_teachers, present_today_count, absent_count)
     
+    from chatbot.rag_engine import get_document_count
+    from .models import PrincipalDocument
+    uploaded_docs = PrincipalDocument.objects.filter(principal=principal, is_ingested=True)
+    doc_count = get_document_count(principal.id)
+
     return render(request, 'principal_dashboard.html', {
         'teachers': teachers,
         'teachers_by_dept': teachers_by_dept,
         'present_today_count': present_today_count,
-        'absent_count': absent_count
+        'absent_count': absent_count,
+        # ── Chatbot widget ──
+        'is_principal': True,
+        'widget_user_name': request.user.username,
+        'uploaded_docs': uploaded_docs,
+        'doc_count': doc_count,
     })
 
 def teacher_login_password(request):
@@ -328,11 +338,20 @@ def teacher_dashboard(request):
         # Check for any ongoing sessions
         active_session = ClassSession.objects.filter(teacher=teacher, status='Ongoing').first()
         
+        from chatbot.rag_engine import get_document_count
+        principal = teacher.principal
+        doc_count = get_document_count(principal.id)
+
         return render(request, 'teacher_dashboard.html', {
-            'teacher': teacher, 
+            'teacher': teacher,
             'timetable': timetable,
             'grouped_schedule': grouped_schedule,
-            'active_session': active_session
+            'active_session': active_session,
+            # ── Chatbot widget ──
+            'is_principal': False,
+            'widget_user_name': teacher.name,
+            'uploaded_docs': [],
+            'doc_count': doc_count,
         })
     except Exception as e:
         logger.error("Teacher dashboard error: %s", e)

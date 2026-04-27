@@ -1,0 +1,485 @@
+{% load static %}
+<!-- ══ ClassAudit AI Floating Chatbot Widget ══ -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  /* ── Bubble ── */
+  #ai-bubble {
+    position: fixed; bottom: 28px; right: 28px; width: 60px; height: 60px;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(59,130,246,0.4); z-index: 9999;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s; font-size: 24px; color: #fff;
+  }
+  #ai-bubble:hover { transform: scale(1.08) translateY(-4px); box-shadow: 0 12px 30px rgba(59,130,246,0.5); }
+  #ai-bubble .badge {
+    position: absolute; top:0; right:0; background:#ef4444;
+    border-radius:50%; width:14px; height:14px; border:2px solid #fff;
+    display: none; /* Hide for now, can be used for notifications */
+  }
+
+  /* ── Panel ── */
+  #ai-panel {
+    position: fixed; bottom: 100px; right: 28px; width: 420px; height: 650px;
+    background: #ffffff; border: 1px solid #e2e8f0;
+    border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    display: none; flex-direction: column; z-index: 9998; overflow: hidden;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+  #ai-panel.open { display: flex; animation: panelUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes panelUp { from{opacity:0;transform:translateY(20px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+  /* ── Panel Header ── */
+  .ai-panel-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 20px 24px; display: flex; align-items: center;
+    justify-content: space-between; flex-shrink: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .ai-panel-header-left { display:flex; align-items:center; gap:12px; }
+  .ai-panel-header-left .icon-box {
+      width: 44px; height: 44px; border-radius: 14px;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      display: flex; align-items: center; justify-content: center; font-size: 20px; color: #1e40af;
+  }
+  .ai-panel-header h3 { color:#0f172a; font-size:16px; font-weight:800; margin:0 0 2px 0; letter-spacing:-0.5px;}
+  .ai-panel-header p { color:#64748b; font-size:12px; font-weight:600; margin:0; }
+  .ai-header-btn {
+    background: #ffffff; border: 1px solid #e2e8f0; border-radius:10px;
+    color:#64748b; width:36px; height:36px; cursor:pointer; font-size:14px;
+    display:flex; align-items:center; justify-content:center; transition:all 0.2s;
+  }
+  .ai-header-btn:hover { background:#f1f5f9; color:#0f172a; transform: translateY(-2px);}
+
+  /* ── Tabs ── */
+  .ai-tabs {
+    display: flex; background:#ffffff; border-bottom:1px solid #e2e8f0;
+    flex-shrink: 0; padding: 0 12px;
+  }
+  .ai-tab {
+    flex:1; padding:16px 12px; font-size:13px; font-weight:700; border:none;
+    background:none; cursor:pointer; color:#94a3b8; transition:all 0.2s;
+    border-bottom: 3px solid transparent; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .ai-tab:hover { color: #475569; background: #f8fafc; }
+  .ai-tab.active { color:#3b82f6; border-bottom-color:#3b82f6; background: #f0fdfa00;}
+
+  /* ── Tab Panes ── */
+  .ai-pane { display:none; flex:1; flex-direction:column; overflow:hidden; background: #f8fafc;}
+  .ai-pane.active { display:flex; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1}}
+
+  /* ── Messages ── */
+  #ai-messages {
+    flex:1; overflow-y:auto; padding:20px; display:flex;
+    flex-direction:column; gap:16px; scroll-behavior:smooth;
+  }
+  #ai-messages::-webkit-scrollbar { width:6px; }
+  #ai-messages::-webkit-scrollbar-track { background: transparent; }
+  #ai-messages::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:10px; border: 2px solid #f8fafc;}
+
+  .ai-msg { display:flex; gap:12px; animation:msgIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes msgIn { from{opacity:0;transform:translateY(10px) scale(0.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+  .ai-msg.user { flex-direction:row-reverse; }
+
+  .ai-msg-av {
+    width:36px; height:36px; border-radius:12px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:16px; font-weight: 700;
+  }
+  .ai-msg.bot .ai-msg-av { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e40af;}
+  .ai-msg.user .ai-msg-av { background:#e2e8f0; color:#475569; }
+
+  .ai-msg-bubble {
+    max-width:85%; padding:14px 18px; border-radius:18px;
+    font-size:14px; line-height:1.6; color:#1e293b; font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+  .ai-msg.bot .ai-msg-bubble { background:#ffffff; border:1px solid #e2e8f0; border-top-left-radius:4px; }
+  .ai-msg.user .ai-msg-bubble { background:linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color:#ffffff; border-top-right-radius:4px; }
+  .ai-msg.error .ai-msg-bubble { background:#fee2e2; border: 1px solid #fca5a5; color:#b91c1c; }
+  .ai-msg-bubble strong { font-weight:800; }
+  .ai-msg-bubble ul { padding-left:20px; margin:8px 0; }
+  .ai-msg-bubble li { margin-bottom:4px; }
+  .ai-msg-bubble p { margin:0 0 8px; }
+  .ai-msg-bubble p:last-child { margin:0; }
+
+  .ai-sources { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; margin-left: 48px; }
+  .ai-src-tag {
+    font-size:11px; font-weight: 700; padding:4px 10px; border-radius:8px;
+    background:#f1f5f9; border:1px solid #e2e8f0; color:#475569;
+    display: flex; align-items: center; gap: 4px; transition: all 0.2s;
+  }
+  .ai-src-tag:hover { background: #e2e8f0; }
+
+  /* Typing dots */
+  .ai-typing { display:flex; gap:6px; align-items:center; padding:14px 18px;
+    background:#ffffff; border-radius:18px; border-top-left-radius:4px;
+    border:1px solid #e2e8f0; width:fit-content; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
+  .ai-dot { width:8px; height:8px; background:#94a3b8; border-radius:50%;
+    animation:dot 1.4s ease-in-out infinite; }
+  .ai-dot:nth-child(2){animation-delay:0.2s} .ai-dot:nth-child(3){animation-delay:0.4s}
+  @keyframes dot { 0%,60%,100%{transform:translateY(0);opacity:0.4} 30%{transform:translateY(-6px);opacity:1; background: #3b82f6;} }
+
+  /* ── Input ── */
+  .ai-input-row {
+    display:flex; gap:12px; padding:16px 20px; border-top:1px solid #e2e8f0;
+    background:#ffffff; flex-shrink:0; align-items:flex-end;
+  }
+  #ai-input {
+    flex:1; background:#f8fafc; border:2px solid #e2e8f0;
+    border-radius:16px; padding:12px 16px; color:#0f172a; font-size:14px; font-weight: 500;
+    resize:none; outline:none; max-height:120px; min-height:48px; line-height:1.5;
+    transition:all 0.2s;
+  }
+  #ai-input:focus { border-color:#3b82f6; background:#ffffff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1);}
+  #ai-input::placeholder { color:#94a3b8; font-weight: 500;}
+  #ai-send {
+    width:48px; height:48px; background:linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border:none; border-radius:16px; color:#fff; cursor:pointer; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:16px; transition:all 0.2s;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.2);
+  }
+  #ai-send:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(59,130,246,0.3); } 
+  #ai-send:disabled { opacity:0.5; cursor:not-allowed; transform: none; box-shadow: none;}
+
+  /* ── Upload Pane ── */
+  .ai-upload-pane {
+    flex:1; overflow-y:auto; padding:24px; display:flex; flex-direction:column; gap:20px;
+    background: #f8fafc;
+  }
+  .ai-section-label { font-size:12px; font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:#64748b; margin-bottom: -8px;}
+  
+  .ai-drop-zone {
+    border:2px dashed #cbd5e1; border-radius:20px;
+    padding:32px 24px; text-align:center; cursor:pointer; transition:all 0.2s;
+    background:#ffffff;
+  }
+  .ai-drop-zone.dragover { border-color:#3b82f6; background:#eff6ff; }
+  .ai-drop-zone p { color:#64748b; font-size:14px; font-weight: 500; margin:12px 0; }
+  .ai-drop-zone .dz-icon { font-size:36px; opacity:0.5; color: #3b82f6; }
+  .ai-browse-btn {
+    display:inline-flex; align-items:center; gap:8px; padding:10px 20px;
+    background:#ffffff; border:1px solid #e2e8f0;
+    border-radius:12px; color:#475569; font-size:13px; font-weight:700; cursor:pointer;
+    margin-top:8px; transition:all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+  .ai-browse-btn:hover { background:#f1f5f9; color: #0f172a; transform: translateY(-1px);}
+
+  /* File queue */
+  .ai-file-badge {
+    display:flex; align-items:center; gap:12px; padding:14px 16px;
+    background:#ffffff; border-radius:14px; border:1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  }
+  .ai-file-badge .name { font-size:13px; font-weight:700; color:#0f172a; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ai-file-badge .size { font-size:12px; color:#64748b; font-weight: 600;}
+  .ai-file-badge .rm { background:#fee2e2; border:none; color:#ef4444; cursor:pointer; font-size:12px; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: background 0.2s;}
+  .ai-file-badge .rm:hover { background:#fecaca; }
+  
+  .ai-upload-btn {
+    width:100%; padding:14px; background:linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border:none; border-radius:14px; color:#fff; font-size:14px; font-weight:700;
+    cursor:pointer; transition:all 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.2);
+  }
+  .ai-upload-btn:disabled { opacity:0.5; cursor:not-allowed; transform: none; box-shadow: none;}
+  .ai-upload-btn:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16,185,129,0.3); }
+  
+  .ai-result { font-size:13px; font-weight: 600; padding:12px 16px; border-radius:12px; display: flex; align-items: center; gap: 8px;}
+  .ai-result.ok { background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; }
+  .ai-result.err { background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; }
+
+  /* ── Docs list in upload pane ── */
+  .ai-doc-list { display:flex; flex-direction:column; gap:10px; }
+  .ai-doc-item {
+    display:flex; align-items:center; gap:12px; padding:14px 16px;
+    background:#ffffff; border-radius:14px; border:1px solid #e2e8f0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02); transition: transform 0.2s;
+  }
+  .ai-doc-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+  .ai-doc-item .ai-doc-title { flex:1; font-size:13px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ai-doc-item .ai-doc-meta { font-size:11px; font-weight: 800; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; color:#475569; white-space:nowrap; }
+  .ai-doc-del { background:none; border:none; color:#94a3b8; cursor:pointer; font-size:14px; padding: 4px; transition: color 0.2s;}
+  .ai-doc-del:hover { color:#ef4444; }
+
+  @media(max-width:480px) {
+    #ai-panel { width:calc(100vw - 32px); right:16px; bottom:100px; height: calc(100vh - 120px); max-height: 700px;}
+  }
+</style>
+
+<!-- Floating Bubble -->
+<div id="ai-bubble" onclick="aiToggle()" title="AI Assistant">
+  🏛️ <div class="badge"></div>
+</div>
+
+<!-- Panel -->
+<div id="ai-panel">
+  <!-- Header -->
+  <div class="ai-panel-header">
+    <div class="ai-panel-header-left">
+      <div class="icon-box">
+        <i class="fas fa-university"></i>
+      </div>
+      <div>
+        <h3>ClassAudit AI</h3>
+        <p>Institutional Assistant · Online</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      {% if is_principal %}
+      <button class="ai-header-btn" onclick="aiSwitchTab('upload')" title="Manage Documents">
+        <i class="fas fa-upload"></i>
+      </button>
+      {% endif %}
+      <button class="ai-header-btn" onclick="aiToggle()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="ai-tabs">
+    <button class="ai-tab active" id="tab-chat" onclick="aiSwitchTab('chat')">
+      <i class="fas fa-robot"></i> Chat
+    </button>
+    {% if is_principal %}
+    <button class="ai-tab" id="tab-upload" onclick="aiSwitchTab('upload')">
+      <i class="fas fa-folder-open"></i> Documents
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Chat Pane -->
+  <div class="ai-pane active" id="pane-chat">
+    <div id="ai-messages">
+      <div class="ai-msg bot">
+        <div class="ai-msg-av"><i class="fas fa-university"></i></div>
+        <div class="ai-msg-bubble">
+          <p>👋 Hello, <strong>{{ widget_user_name }}</strong>!</p>
+          <p>Ask me anything about your school's policies, attendance rules, leave procedures, or how to use the system.</p>
+        </div>
+      </div>
+    </div>
+    <div class="ai-input-row">
+      <textarea id="ai-input" placeholder="Ask about policies, rules…" rows="1"
+        onkeydown="aiKey(event)" oninput="aiResize(this)"></textarea>
+      <button id="ai-send" onclick="aiSend()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  {% if is_principal %}
+  <!-- Upload Pane (Principal only) -->
+  <div class="ai-pane" id="pane-upload">
+    <div class="ai-upload-pane">
+
+      <!-- Drop zone -->
+      <div class="ai-section-label">Upload Documents</div>
+      <div class="ai-drop-zone" id="aiDropZone">
+        <div class="dz-icon">☁️</div>
+        <p>Drag & drop PDF, MD, or TXT files</p>
+        <input type="file" id="aiFileInput" multiple accept=".pdf,.md,.txt" style="display:none">
+        <button class="ai-browse-btn" onclick="document.getElementById('aiFileInput').click()">
+          <i class="fas fa-folder-open"></i> Browse Files
+        </button>
+      </div>
+
+      <!-- File queue -->
+      <div id="aiFileQueue" style="display:none;flex-direction:column;gap:6px;"></div>
+      <button class="ai-upload-btn" id="aiUploadBtn" style="display:none" onclick="aiUploadFiles()">
+        <i class="fas fa-upload"></i> Upload & Ingest
+      </button>
+      <div id="aiUploadResults"></div>
+
+      <!-- Existing docs -->
+      <div class="ai-section-label" style="margin-top:4px;">Knowledge Base ({{ doc_count }} chunks)</div>
+      <div class="ai-doc-list" id="aiDocList">
+        {% for doc in uploaded_docs %}
+        <div class="ai-doc-item" id="aidoc-{{ doc.id }}">
+          <span style="font-size:16px;">{% if doc.file_type == 'pdf' %}📕{% elif doc.file_type == 'md' %}📝{% else %}📄{% endif %}</span>
+          <span class="ai-doc-title">{{ doc.title }}</span>
+          <span class="ai-doc-meta">{{ doc.file_type|upper }}</span>
+          <button class="ai-doc-del" onclick="aiDeleteDoc({{ doc.id }}, '{{ doc.title }}')">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+        {% empty %}
+        <p style="font-size:12px;color:#64748b;text-align:center;padding:12px 0;">
+          No documents yet. Upload your first file above.
+        </p>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+(function(){
+  const CHAT_API   = "{% url 'chat_api' %}";
+  const UPLOAD_API = "{% url 'upload_documents' %}";
+  const DEL_BASE   = "{% url 'delete_document' doc_id=0 %}".replace('/0/', '/');
+  const CSRF       = "{{ csrf_token }}";
+  let pendingFiles = [];
+
+  /* ── Panel toggle ── */
+  window.aiToggle = () => document.getElementById('ai-panel').classList.toggle('open');
+
+  /* ── Tab switch ── */
+  window.aiSwitchTab = (tab) => {
+    document.querySelectorAll('.ai-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.ai-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('tab-'+tab).classList.add('active');
+    document.getElementById('pane-'+tab).classList.add('active');
+    if (!document.getElementById('ai-panel').classList.contains('open'))
+      document.getElementById('ai-panel').classList.add('open');
+  };
+
+  /* ── Chat ── */
+  window.aiKey = (e) => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();} };
+  window.aiResize = (el) => { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; };
+
+  window.aiSend = async () => {
+    const inp = document.getElementById('ai-input');
+    const query = inp.value.trim();
+    if(!query) return;
+    inp.value=''; inp.style.height='auto';
+    document.getElementById('ai-send').disabled = true;
+
+    appendMsg('user', escHtml(query));
+    const tid = appendTyping();
+
+    try {
+      const r = await fetch(CHAT_API, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
+        body:JSON.stringify({query})
+      });
+      const d = await r.json();
+      removeEl(tid);
+      if(d.error) appendMsg('error', d.error);
+      else appendBotMsg(d.answer, d.sources||[]);
+    } catch {
+      removeEl(tid);
+      appendMsg('error','Network error. Please try again.');
+    } finally {
+      document.getElementById('ai-send').disabled = false;
+    }
+  };
+
+  function appendMsg(role, html){
+    const box = document.getElementById('ai-messages');
+    const av = role==='user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-university"></i>';
+    const d = document.createElement('div');
+    d.className = `ai-msg ${role==='user'?'user':role==='error'?'bot error':'bot'}`;
+    d.innerHTML = `<div class="ai-msg-av">${av}</div><div class="ai-msg-bubble">${html}</div>`;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+    return d.id = 'msg-'+Date.now(), d.id;
+  }
+
+  function appendBotMsg(text, sources){
+    const box = document.getElementById('ai-messages');
+    const d = document.createElement('div');
+    d.className = 'ai-msg bot';
+    const srcHtml = sources.length ? `<div class="ai-sources">${sources.map(s=>`<span class="ai-src-tag"><i class="fas fa-file-alt"></i> ${escHtml(s.title)}</span>`).join('')}</div>` : '';
+    d.innerHTML = `<div class="ai-msg-av"><i class="fas fa-university"></i></div><div><div class="ai-msg-bubble">${fmtText(text)}</div>${srcHtml}</div>`;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function appendTyping(){
+    const box = document.getElementById('ai-messages');
+    const d = document.createElement('div');
+    d.className = 'ai-msg bot';
+    d.id = 'ai-typing-'+Date.now();
+    d.innerHTML = `<div class="ai-msg-av"><i class="fas fa-university"></i></div><div class="ai-typing"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>`;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+    return d.id;
+  }
+
+  function removeEl(id){ const e=document.getElementById(id); if(e) e.remove(); }
+
+  function fmtText(t){
+    t = escHtml(t);
+    t = t.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    t = t.replace(/^[\s]*[-•]\s(.+)/gm,'<li>$1</li>');
+    t = t.replace(/(<li>[\s\S]*?<\/li>)/g,'<ul>$1</ul>');
+    t = t.replace(/^\d+\.\s(.+)/gm,'<li>$1</li>');
+    return t.split(/\n\n+/).map(p=>{
+      p=p.trim();
+      if(!p||p.startsWith('<ul>')||p.startsWith('<li>')) return p;
+      return `<p>${p.replace(/\n/g,'<br>')}</p>`;
+    }).join('');
+  }
+  function escHtml(t){ const d=document.createElement('div'); d.appendChild(document.createTextNode(t)); return d.innerHTML; }
+
+  /* ── Upload ── */
+  const dz = document.getElementById('aiDropZone');
+  if(dz){
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');addFiles(Array.from(e.dataTransfer.files));});
+    document.getElementById('aiFileInput').addEventListener('change',e=>{addFiles(Array.from(e.target.files));e.target.value='';});
+  }
+
+  function addFiles(files){
+    const allowed=['pdf','md','txt'];
+    files.forEach(f=>{
+      const ext=f.name.split('.').pop().toLowerCase();
+      if(!allowed.includes(ext)) return;
+      if(!pendingFiles.find(x=>x.name===f.name&&x.size===f.size)) pendingFiles.push(f);
+    });
+    renderQueue();
+  }
+
+  function renderQueue(){
+    const q = document.getElementById('aiFileQueue');
+    const btn = document.getElementById('aiUploadBtn');
+    if(!q) return;
+    if(!pendingFiles.length){ q.style.display='none'; btn.style.display='none'; return; }
+    q.style.display='flex'; btn.style.display='block';
+    q.innerHTML = pendingFiles.map((f,i)=>`
+      <div class="ai-file-badge">
+        <span style="font-size:16px;">${f.name.endsWith('.pdf')?'📕':'📝'}</span>
+        <span class="name">${escHtml(f.name)}</span>
+        <span class="size">${(f.size/1024).toFixed(1)}KB</span>
+        <button class="rm" onclick="removeFile(${i})"><i class="fas fa-times"></i></button>
+      </div>`).join('');
+  }
+
+  window.removeFile = (i) => { pendingFiles.splice(i,1); renderQueue(); };
+
+  window.aiUploadFiles = async () => {
+    if(!pendingFiles.length) return;
+    const btn = document.getElementById('aiUploadBtn');
+    const res = document.getElementById('aiUploadResults');
+    btn.disabled = true; btn.textContent = 'Ingesting…';
+    res.innerHTML = '';
+    const fd = new FormData();
+    pendingFiles.forEach(f => fd.append('documents', f));
+    try {
+      const r = await fetch(UPLOAD_API,{method:'POST',headers:{'X-CSRFToken':CSRF},body:fd});
+      const d = await r.json();
+      res.innerHTML = d.results.map(x=>`<div class="ai-result ${x.status==='success'?'ok':'err'}">${escHtml(x.message)}</div>`).join('');
+      pendingFiles = []; renderQueue();
+      if(d.results.some(x=>x.status==='success')) setTimeout(()=>location.reload(),1800);
+    } catch {
+      res.innerHTML = '<div class="ai-result err">Upload failed. Check connection.</div>';
+    } finally {
+      btn.disabled=false; btn.innerHTML='<i class="fas fa-upload"></i> Upload & Ingest';
+    }
+  };
+
+  window.aiDeleteDoc = async (id, title) => {
+    if(!confirm(`Remove "${title}" from knowledge base?`)) return;
+    try {
+      const r = await fetch(`${DEL_BASE}${id}/`,{method:'POST',headers:{'X-CSRFToken':CSRF}});
+      const d = await r.json();
+      if(d.status==='success'){
+        const row = document.getElementById('aidoc-'+id);
+        if(row) row.remove();
+      }
+    } catch {}
+  };
+})();
+</script>

@@ -89,6 +89,42 @@ class ClassSession(models.Model):
         return f"{self.teacher.name} - {self.timetable.subject if self.timetable else 'Extra Class'} - {self.start_time.date()}"
 
 
+class PrincipalDocument(models.Model):
+    """Stores policy/handbook documents uploaded by a Principal for their RAG chatbot."""
+    principal = models.ForeignKey(Principal, on_delete=models.CASCADE, related_name='documents')
+    title = models.CharField(max_length=200)
+    file = models.FileField(upload_to='principal_docs/')
+    file_type = models.CharField(max_length=10)  # pdf, md, txt
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    is_ingested = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.principal.school_name})"
+
+
+# ── Signal: Remove ChromaDB chunks when a document is deleted ──
+@receiver(post_delete, sender=PrincipalDocument)
+def remove_document_from_vector_store(sender, instance, **kwargs):
+    """When a PrincipalDocument is deleted, remove its chunks from ChromaDB."""
+    try:
+        import chromadb
+        from django.conf import settings as app_settings
+        chroma_dir = os.path.join(app_settings.BASE_DIR, "chroma_db")
+        client = chromadb.PersistentClient(path=chroma_dir)
+        collection_name = f"principal_{instance.principal.id}"
+        try:
+            collection = client.get_collection(collection_name)
+            # Delete all chunks that belong to this document file
+            collection.delete(where={"source_file": os.path.basename(instance.file.name)})
+        except Exception:
+            pass  # Collection may not exist yet
+    except Exception:
+        pass
+
+
 # ── Signal: Auto-delete User and face data when Teacher is deleted ──
 @receiver(post_delete, sender=Teacher)
 def delete_teacher_user_and_data(sender, instance, **kwargs):
